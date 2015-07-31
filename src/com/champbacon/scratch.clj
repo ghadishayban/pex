@@ -4,15 +4,21 @@
 (defprotocol OpTree
   (pattern [_]))
 
+;; make this work on pairs and do associativity fix inline?
 (defn choice
   [alternatives]
-  {:op :choice
-   :children alternatives})
+  (if (= 1 (count alternatives))
+    (first alternatives)
+    {:op :choice
+     :children alternatives}))
 
+;; make this work on pairs and do associativity fix inline?
 (defn cat
   [ps]
-  {:op :cat
-   :children ps})
+  (if (= 1 (count ps))
+    (first ps)
+    {:op :cat
+     :children ps}))
 
 (defn char-range
   [low high]
@@ -130,3 +136,41 @@
 
         :else
         (throw (ex-info "Unrecognized call" {:op call :form l}))))))
+
+
+;;; Optimizations
+
+(defn has-capture?
+  [op]
+  )
+
+(defn empty-string-behavior
+  [tree]
+  ;; A pattern is *nullable* if it can match without consuming any character;
+  ;; A pattern is *nofail* if it never fails for any string
+  ;; (including the empty string).
+ )
+
+(defn fixed-length
+  [tree]
+  ;; number of characters to match a pattern (or nil if variable)
+;; avoid infinite loop with a MAXRULES traversal count
+
+  )
+
+(defn first-set
+  [tree]
+  ;; https://github.com/lua/lpeg/blob/2960f1cf68af916a095625dfd3e39263dac5f38c/lpcode.c#L246
+  )
+
+(defn head-fail?
+  [tree]
+  ;; https://github.com/lua/lpeg/blob/2960f1cf68af916a095625dfd3e39263dac5f38c/lpcode.c#L341
+  )
+
+(defmacro show
+  [form]
+  `(clojure.pprint/pprint (pattern (quote ~form))))
+
+(defn grammar
+  [m entry-point])
