@@ -64,6 +64,16 @@
   {:op :open-call
    :target kw})
 
+(defn push
+  [obj]
+  {:op :push
+   :value obj})
+
+(defn capture
+  [ps]
+  {:op :capture
+   :children ps})
+
 (extend-protocol OpTree
   String
   (pattern [s] (string s))
@@ -100,18 +110,19 @@
         (= call '/)
         (choice (mapv pattern (next l)))
 
-
         (= call 'ANY)
         (apply any (next l))
         ;; (= call 'cat)
-                
-        ;; (= call 'push)
 
         ;; (= call 'not)
         
         ;; (= call 'and)
 
-        ;; (= call 'capture)
+        (= call 'push)
+        (push (fnext l))
+
+        (= call 'capture)
+        (capture (mapv pattern (next l)))
 
         ;; (= call 'reduce)
 
@@ -119,4 +130,3 @@
 
         :else
         (throw (ex-info "Unrecognized call" {:op call :form l}))))))
-
