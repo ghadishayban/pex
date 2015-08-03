@@ -1,6 +1,9 @@
 (ns com.champbacon.scratch
   (:refer-clojure :exclude [cat char not and]))
 
+
+(def ^:dynamic *macros* {})
+
 (defprotocol OpTree
   (pattern [_]))
 
@@ -41,9 +44,9 @@
   {:op :fail})
 
 (defn rep
-  [min max patt]
-  ;;
-  )
+  [patt]
+  {:op :rep
+   :children patt})
 
 (defn any
   ([] {:op :any})
@@ -52,7 +55,7 @@
 (defn not
   [patt]
   {:op :not
-   :children [patt]})
+   :children patt})
 
 (defn and
   [patt]
@@ -80,6 +83,11 @@
   {:op :capture
    :children ps})
 
+(defn optional
+  [ps]
+  {:op :optional
+   :children ps})
+
 (extend-protocol OpTree
   String
   (pattern [s] (string s))
@@ -90,8 +98,9 @@
   clojure.lang.Symbol
   (pattern [s]
     (condp = s
-      'ANY
-      (any)
+      'ANY (any)
+
+      'EOI end-of-input
 
       (throw (ex-info "Unrecognized symbol" {:symbol s}))))
 
@@ -109,34 +118,46 @@
       {:op :false}))
   
   clojure.lang.IPersistentList
+
+  ;; TODO Add macroexpansion
   (pattern [l]
     (when-first [call l]
-      (cond
+      (let [args (next l)
+            call-with-args #(%1 (mapv pattern args))]
+        (condp = call
 
-        (= call '/)
-        (choice (mapv pattern (next l)))
+          '/
+          (call-with-args choice)
 
-        (= call 'ANY)
-        (apply any (next l))
-        ;; (= call 'cat)
+          'ANY
+          (call-with-args any)
 
-        ;; (= call 'not)
-        
-        ;; (= call 'and)
+          '*
+          (call-with-args rep)
 
-        (= call 'push)
-        (push (fnext l))
+          '?
+          (call-with-args optional)
 
-        (= call 'capture)
-        (capture (mapv pattern (next l)))
+          'not
+          (call-with-args not)
+          
+          'and
+          (call-with-args and)
 
-        ;; (= call 'reduce)
+          'capture
+          (call-with-args capture)
 
-        ;; (= call 'action)
+          'push
+          (push (fnext l))
 
-        :else
-        (throw (ex-info "Unrecognized call" {:op call :form l}))))))
+          ;;'reduce
+          ;;(reduce-value-stack (next l))
 
+          ;;'action
+          ;;(action (next l))
+
+          :else 
+          (throw (ex-info "Unrecognized call" {:op call :form l})))))))
 
 ;;; Optimizations
 
