@@ -1,50 +1,25 @@
-(ns com.champbacon.pex)
-
-
-
-;; vm
-
-(defn op
-  [inst & extra]
-  {:op inst
-   :extra extra})
-
-(defn jump
-  [cur dest]
-  (op :jmp (- dest cur)))
-
-(def instructions
-  #{:jmp
-    :predicate
-    :call
-    :ret})
-
-(defn run-step [prog sp captures])
-
-(defn concat-blocks
-  [& blocks]
-  (into [] cat blocks))
-
-(defn choice [p1 p2]
-  (let [backtrack (inst :choice 'L1)
-        commit (inst :commit 'L2)]
-    (concat-blocks [backtrack]
-                   (instructions p1)
-                   [commit]
-                   [(marker 'L1)]
-                   (instructions p2)
-                   [marker 'L2])))
+(ns com.champbacon.pex
+  (:refer-clojure :exclude [compile])
+  (:require [com.champbacon.impl.tree :as tree]
+            [com.champbacon.impl.codegen :as codegen]))
 
 ;; ADDS to Stack
-:push    ;; puts an abitrary val onto the value stack
-:capture ;; puts the full text match onto the value stack
+;; :push    ;; puts an abitrary val onto the value stack
+;; :capture ;; puts the full text match onto the value stack
 
 ;; transforms stack
-:action  ;; #{:reduce :call}  ;; call takes a # of args
-:reduce ([] [r] [r i])
+;; :action  ;; #{:reduce :call}  ;; call takes a # of args
+;; :reduce ([] [r] [r i])
 ;; REMOVES from stack
 
+(defn match
+  [vm input])
 
-'{NormalChar [[! QuoteBackslash] ANY [:fn appendLastChar]]
-  Characters [[* NormalChar / ["\\" EscapedChar]]]
-  JsonTrue ["true" [:push :js/true]]}
+(defn compile
+  [data entrypoint]
+  (when-not (contains? data entrypoint)
+    (throw (ex-info "Unknown entrypoint" {:grammar data
+                                          :entrypoint entrypoint})))
+  (let [parse-ast (fn [[kw p]] [kw (tree/pattern p)])
+        grammar (into {} (map parse-ast) data)]
+    (codegen/emit-instructions grammar entrypoint)))
