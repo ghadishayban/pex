@@ -24,10 +24,10 @@
      :children ps}))
 
 (defn char-range
-  [low high]
+  [args]
+  ;; checkargs
   {:op :range
-   :low low
-   :high high})
+   :args args})
 
 (defn char
   [codepoint]
@@ -149,6 +149,9 @@
 
           'push
           (push (fnext l))
+
+          'class
+          (char-range (next l))
 
           ;;'reduce
           ;;(reduce-value-stack (next l))

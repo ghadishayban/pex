@@ -34,7 +34,6 @@
 
 (defn concat-trees
   [env ts]
-  (println ts)
   (into [] (mapcat (partial emit env)) ts))
 
 (defn emit-cat
@@ -61,7 +60,9 @@
 (defn emit-call
   [env ast]
   (let [{:keys [target]} ast]
-    [[:open-call target]]))
+    (when-not (contains? (:non-terminals env) target)
+      (throw (ex-info "Undefined non-terminal" {:target target})))
+    [[:call target]]))
 
 (defn emit-optional
   [env ast]
@@ -89,6 +90,18 @@
                [:fail]
                [:label L2]]))))
 
+(defn emit-range
+  [_ ast]
+  (let [{:keys [args]} ast]
+    [:range (first args)]))
+
+(defn emit-capture
+  [env ast]
+  ;; optimize
+  (let [body (concat-trees env (:children ast))]
+    (-> (into [[:begin-capture]] body)
+        (conj [:end-capture]))))
+
 (def dispatch {:choice emit-choice
                :char emit-char
                :cat  emit-cat
@@ -101,13 +114,14 @@
                :end-of-input (constantly [[:end-of-input]])
                :not emit-not-predicate
                :and emit-and-predicate
-
-               #_(:push
-                  :capture
+               :range emit-range
+               :capture emit-capture
+               #_(
                   :action
                   :reduce
                   :action
-                  :range)})
+
+                  :push)})
 
 (defn emit
   [env ast]
@@ -126,9 +140,36 @@
     {:non-terminals (set (keys grammar))
      :next-label #(swap! current-id inc)}))
 
+(def branching?
+  #{:commit
+    :choice
+    :jump
+    :call
+    :back-commit
+    :partial-commit})
+
+(defn link
+  [instructions]
+  (let [[insts labels] (reduce (fn [[insts labels] [op arg :as inst]]
+                                 (if (= :label op)
+                                   [insts (assoc labels arg (count insts))]
+                                   [(conj insts inst) labels]))
+                               [[] {}] instructions)
+
+        redirect (fn [[op arg :as inst] pc]
+                   (if (branching? op)
+                     (assoc inst 1 (if-let [dest (labels arg)] (- dest pc) arg))
+                     inst))]
+    (mapv redirect insts (range))))
+
 (defn emit-instructions
   [grammar entrypoint]
   (let [env (empty-env grammar)
-        call-blocks (into {} (map (fn [[kw ast]]
-                                    (emit env ast))))]
-    call-blocks))
+        preamble [[:call entrypoint]]
+        instructions (into preamble
+                           (mapcat (fn [[kw ast]]
+                                     (-> (into [[:label kw :call]]
+                                               (emit env ast))
+                                         (conj [:return]))))
+                           grammar)]
+    (link instructions)))
