@@ -69,9 +69,9 @@
   [])
 
 (defn non-terminal
-  [kw]
+  [s]
   {:op :open-call
-   :target kw})
+   :target s})
 
 (defn push
   [obj]
@@ -88,6 +88,8 @@
   {:op :optional
    :children ps})
 
+(def special '#{any EOI / * ? capture push and not class action reduce})
+
 (extend-protocol OpTree
   String
   (pattern [s] (string s))
@@ -99,17 +101,11 @@
   (pattern [s]
     (condp = s
       'any (any)
-
       'EOI end-of-input
-
-      (throw (ex-info "Unrecognized symbol" {:symbol s}))))
+      (non-terminal s)))
 
   java.lang.Character
   (pattern [ch] (char (int ch)))
-
-  clojure.lang.Keyword
-  (pattern [kw]
-    (non-terminal kw))
 
   java.lang.Boolean
   (pattern [b]
@@ -118,7 +114,6 @@
       {:op :fail}))
   
   clojure.lang.IPersistentList
-
   ;; TODO Add macroexpansion
   (pattern [l]
     (when-first [call l]
@@ -131,7 +126,7 @@
             '/
             (call-with-args choice)
 
-            'ANY
+            'any
             (call-with-args any)
 
             '*
@@ -166,6 +161,8 @@
 
 (defn parse-grammar
   [grammar macros]
+  (when-not (every? keyword? (keys macros))
+    (throw (ex-info "PEG macros must all be keywords" macros)))
   (binding [*macros* macros]
     (into {} (map (fn [[kw p]]
                     [kw (pattern p)])) grammar)))

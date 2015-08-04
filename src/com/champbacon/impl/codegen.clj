@@ -176,8 +176,8 @@
   (let [env (empty-env grammar)
 
         instructions (into []
-                           (mapcat (fn [[kw ast]]
-                                     (-> (into [[:label kw :call]]
+                           (mapcat (fn [[sym ast]]
+                                     (-> (into [[:label sym :call]]
                                                (emit env ast))
                                          (conj [:return]))))
                            grammar)]
