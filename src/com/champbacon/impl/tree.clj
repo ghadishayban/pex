@@ -122,45 +122,53 @@
   ;; TODO Add macroexpansion
   (pattern [l]
     (when-first [call l]
-      (let [args (next l)
-            call-with-args #(%1 (mapv pattern args))]
-        (condp = call
+      (if-let [macro (get *macros* call)]
+        (pattern (apply macro (next l)))
+        (let [args (next l)
+              call-with-args #(%1 (mapv pattern args))]
+          (condp = call
 
-          '/
-          (call-with-args choice)
+            '/
+            (call-with-args choice)
 
-          'ANY
-          (call-with-args any)
+            'ANY
+            (call-with-args any)
 
-          '*
-          (call-with-args rep)
+            '*
+            (call-with-args rep)
 
-          '?
-          (call-with-args optional)
+            '?
+            (call-with-args optional)
 
-          'not
-          (call-with-args not)
-          
-          'and
-          (call-with-args and)
+            'not
+            (call-with-args not)
+            
+            'and
+            (call-with-args and)
 
-          'capture
-          (call-with-args capture)
+            'capture
+            (call-with-args capture)
 
-          'push
-          (push (fnext l))
+            'push
+            (push (fnext l))
 
-          'class
-          (char-range (next l))
+            'class
+            (char-range (next l))
 
-          ;;'reduce
-          ;;(reduce-value-stack (next l))
+            ;;'reduce
+            ;;(reduce-value-stack (next l))
 
-          ;;'action
-          ;;(action (next l))
+            ;;'action
+            ;;(action (next l))
 
-          :else 
-          (throw (ex-info "Unrecognized call" {:op call :form l})))))))
+            :else 
+            (throw (ex-info "Unrecognized call" {:op call :form l}))))))))
+
+(defn parse-grammar
+  [grammar macros]
+  (binding [*macros* macros]
+    (into {} (map (fn [[kw p]]
+                    [kw (pattern p)])) grammar)))
 
 ;;; Optimizations
 
@@ -191,11 +199,3 @@
   [tree]
   ;; https://github.com/lua/lpeg/blob/2960f1cf68af916a095625dfd3e39263dac5f38c/lpcode.c#L341
   )
-
-(defmacro show
-  [form]
-  `(clojure.pprint/pprint (pattern (quote ~form))))
-
-(defn grammar
-  [m entry-point])
-

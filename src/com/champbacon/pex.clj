@@ -16,10 +16,11 @@
   [vm input])
 
 (defn compile
-  [data entrypoint]
-  (when-not (contains? data entrypoint)
-    (throw (ex-info "Unknown entrypoint" {:grammar data
-                                          :entrypoint entrypoint})))
-  (let [parse-ast (fn [[kw p]] [kw (tree/pattern p)])
-        grammar (into {} (map parse-ast) data)]
-    (codegen/emit-instructions grammar entrypoint)))
+  ([data entrypoint]
+    (compile data entrypoint {}))
+  ([data entrypoint macros]
+   (when-not (contains? data entrypoint)
+     (throw (ex-info "Unknown entrypoint" {:grammar data
+                                           :entrypoint entrypoint})))
+   (let [ast (tree/parse-grammar data macros)]
+     (codegen/emit-instructions ast entrypoint))))

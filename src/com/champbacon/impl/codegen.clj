@@ -93,7 +93,7 @@
 (defn emit-range
   [_ ast]
   (let [{:keys [args]} ast]
-    [:range (first args)]))
+    [[:range (first args)]]))
 
 (defn emit-capture
   [env ast]
@@ -162,14 +162,23 @@
                      inst))]
     (mapv redirect insts (range))))
 
+(defn add-entrypoint
+  [env code entrypoint]
+  (let [end (label env)]
+    (concat [[:call entrypoint]
+             [:jump end]]
+            code
+            [[:label end]
+             [:end]])))
+
 (defn emit-instructions
   [grammar entrypoint]
   (let [env (empty-env grammar)
-        preamble [[:call entrypoint]]
-        instructions (into preamble
+
+        instructions (into []
                            (mapcat (fn [[kw ast]]
                                      (-> (into [[:label kw :call]]
                                                (emit env ast))
                                          (conj [:return]))))
                            grammar)]
-    (link instructions)))
+    (link (add-entrypoint env instructions entrypoint))))
