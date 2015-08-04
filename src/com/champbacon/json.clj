@@ -54,10 +54,6 @@
                   :join (fn [patt sep]
                           [patt (list '* sep patt)])})
 
-;; Repeat X
+;; (run! prn (pex/compile JSON 'json json-macros))
 
-;; 0 or more
-'{:expr (/ [:X :expr] true)}
-;; 1 or more
-'{:expr (/ [:X :expr] true)}
 
