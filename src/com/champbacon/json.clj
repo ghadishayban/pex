@@ -18,7 +18,7 @@
 
             string [\" characters (:ws \")]
 
-            number [(capture [integer (? frac) (? exp)]) whitespace]
+            number [(capture integer (? frac) (? exp)) whitespace]
 
             characters (/ (* normal-character)
                           ["\\" escaped-character])
@@ -32,10 +32,10 @@
                                  "r"
                                  "t"
                                  unicode)
-            unicode ["u" (capture [(class hexdigit)
-                                   (class hexdigit)
-                                   (class hexdigit)
-                                   (class hexdigit)])]
+            unicode ["u" (capture (class hexdigit)
+                                  (class hexdigit)
+                                  (class hexdigit)
+                                  (class hexdigit))]
             integer [(? "-") (/ [(class digit19) digits]
                                 (class digit))]
             digits  [(class digit) (* (class digit))]
@@ -46,14 +46,28 @@
             jnull  ["null" whitespace]
             whitespace (* (:anyof " \n\r\t\f"))})
 
-(def json-macros {:anyof (fn [str]
-                           (apply list '/ (seq str)))
-                  :ignore-case identity
-                  :ws (fn [patt]
-                        [patt 'whitespace])
-                  :join (fn [patt sep]
-                          [patt (list '* sep patt)])})
+(def json-macros {:anyof       (fn [str] (apply list '/ (seq str)))
+                  :ws          (fn [patt] [patt 'whitespace])
+                  :join        (fn [patt sep] [patt (list '* sep patt)])
+                  :ignore-case identity})
 
 ;; (run! prn (pex/compile JSON 'json json-macros))
 
+(def CSV '{
+           file [OWS record (* NL record) EOI]
+           record [field (* field-delimeter field)]
 
+           field-delimeter ","
+           field (/ quoted unquoted)
+
+           unquoted (capture (* (class nonquotechars)))
+           ;; (capture (not \") (* ANY))
+           quoted [OWS \"
+                   (capture (/ (class quotechars) "\"\""))
+                   \" OWS]
+
+           NL [(? \r) \n]
+           OWS (* (class :ws))})
+
+(def csv-macros {:ws   (fn [patt] [patt 'whitespace])
+                 :join (fn [patt sep] [patt (list '* sep patt)])})
