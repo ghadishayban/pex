@@ -102,6 +102,12 @@
     (-> (into [[:begin-capture]] body)
         (conj [:end-capture]))))
 
+(defn emit-action
+  [env ast]
+  (let [n (or (get (:actions env) (:target ast))
+              (throw (ex-info "Action not found" ast)))]
+    [[:action n]]))
+
 (def dispatch {:choice emit-choice
                :char emit-char
                :cat  emit-cat
@@ -116,11 +122,10 @@
                :and emit-and-predicate
                :range emit-range
                :capture emit-capture
+               :action emit-action
                #_(
-                  :action
                   :reduce
                   :action
-
                   :push)})
 
 (defn emit
@@ -134,12 +139,6 @@
                   [:end]]]
     (into preamble instrs)))
 
-(defn empty-env
-  [grammar]
-  (let [current-id (atom 0)]
-    {:non-terminals (set (keys grammar))
-     :next-label #(swap! current-id inc)}))
-
 (def branching?
   #{:commit
     :choice
@@ -149,6 +148,7 @@
     :partial-commit})
 
 (defn link
+  "Turns all symbolic jumps into relative address jumps"
   [instructions]
   (let [[insts labels] (reduce (fn [[insts labels] [op arg :as inst]]
                                  (if (= :label op)
@@ -171,14 +171,20 @@
             [[:label end]
              [:end]])))
 
-(defn emit-instructions
-  [grammar entrypoint]
-  (let [env (empty-env grammar)
+(defn empty-env
+  [grammar actions]
+  (let [current-id (atom 0)]
+    {:non-terminals (set (keys grammar))
+     :next-label #(swap! current-id inc)
+     :actions (into {} (map vector (keys actions) (range)))}))
 
-        instructions (into []
-                           (mapcat (fn [[sym ast]]
-                                     (-> (into [[:label sym :call]]
-                                               (emit env ast))
-                                         (conj [:return]))))
-                           grammar)]
+(defn emit-instructions
+  [grammar actions entrypoint]
+  (let [env (empty-env grammar actions)
+
+        emit-rule (fn [[sym ast]]
+                    (-> (into [[:label sym :call]]
+                              (emit env ast))
+                        (conj [:return])))
+        instructions (into [] (mapcat emit-rule) grammar)]
     (link (add-entrypoint env instructions entrypoint))))

@@ -66,7 +66,9 @@
   {:op :end-of-input})
 
 (defn action
-  [])
+  [target]
+  {:op :action
+   :target target})
 
 (defn non-terminal
   [s]
@@ -154,7 +156,7 @@
             ;;(reduce-value-stack (next l))
 
             ;;'action
-            ;;(action (next l))
+            (action (fnext l))
 
             :else 
             (throw (ex-info "Unrecognized call" {:op call :form l}))))))))

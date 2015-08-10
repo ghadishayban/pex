@@ -3,13 +3,7 @@
 
 (def JSON '{json    [whitespace value EOI]
 
-            value (/ string
-                     number
-                     object
-                     array
-                     jtrue
-                     jfalse
-                     jnull)
+            value (/ string number object array jtrue jfalse jnull)
 
             object  [(:ws "{") (:join pair ",") (:ws "}")]
             pair    [string (:ws ":") value]
@@ -53,8 +47,8 @@
 
 ;; (run! prn (pex/compile JSON 'json json-macros))
 
-(def CSV '{
-           file [OWS record (* NL record) EOI]
+(def CSV '{file [OWS record (* NL record) EOI]
+
            record [field (* field-delimeter field)]
 
            field-delimeter ","
