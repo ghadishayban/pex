@@ -122,11 +122,7 @@
                :and emit-and-predicate
                :range emit-range
                :capture emit-capture
-               :action emit-action
-               #_(
-                  :reduce
-                  :action
-                  :push)})
+               :action emit-action})
 
 (defn emit
   [env ast]
@@ -146,6 +142,35 @@
     :call
     :back-commit
     :partial-commit})
+
+(def op->code
+  (let [insts [:call
+               :ret
+               :choice
+               :commit
+               :partial-commit
+               :back-commit
+               :jump
+               :fail-twice
+               :fail
+               :end
+
+               :char
+               :test-char
+               :charset
+               :test-charset
+               :any
+               :test-any
+               :span
+
+               :begin-capture
+               :end-capture
+               :full-capture
+               :behind]]
+    (into {} (map-indexed (fn [i op] [op i]))
+          )))
+
+
 
 (defn link
   "Turns all symbolic jumps into relative address jumps"

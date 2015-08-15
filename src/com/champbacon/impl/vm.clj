@@ -1,8 +1,9 @@
-(ns com.champbacon.impl.vm)
+(ns com.champbacon.impl.vm
+  (:refer-clojure :exclude [pop]))
 
 (definterface Stack
- ; (add! [_ o])
-  (remove [_]))
+  (push [_ o])
+  (pop [_]))
 
 #_(deftype MutableStack [v ^:unsynchronized-mutable lwm]
   clojure.lang.IReduceInit
@@ -10,6 +11,10 @@
   Stack
 ;  (add! [_ o])
   (remove [_]))
+
+(defn reduce-captures
+  [stack f]
+  (reduce f (f) stack))
 
 (defn callback
   "Mutable stack, parser, and arbitrary context (final)"
@@ -189,25 +194,3 @@
   [:call -159]
   [:return]
   [:end]]
-
-(defn my-function
-  []
-  (let [done (atom 2)]
-    (while (pos? @done)
-      (swap! done dec)
-      (loop [found []]
-        (println (conj found 1))))))
-
-
-;; NO_RECUR
-;; RecurExpr.parse
-
-;; LOCAL_ENV
-
-((let [x (atom 5)]
-    (fn []
-      (loop [] (System/getProperties))
-      (swap! x dec)
-      (if (pos? @x)
-        (recur)
-        (count [])))))
