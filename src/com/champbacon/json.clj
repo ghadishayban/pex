@@ -40,6 +40,8 @@
             jnull  ["null" whitespace]
             whitespace (* (:anyof " \n\r\t\f"))})
 
+;; case(syms...)  tail recursion
+
 (def json-macros {:anyof       (fn [str] (apply list '/ (seq str)))
                   :ws          (fn [patt] [patt 'whitespace])
                   :join        (fn [patt sep] [patt (list '* sep patt)])
