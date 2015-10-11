@@ -5,20 +5,22 @@
 
             value (/ string number object array jtrue jfalse jnull)
 
-            object  [(:ws "{") (:join pair ",") (:ws "}")]
-            pair    [string (:ws ":") value]
+            object  [(:ws "{")
+                     (:join [string (:ws ":") value] ",")
+                     (:ws "}")
+                     (action capture-object)]
 
             array [(:ws "[") (:join value (:ws ",")) (:ws "]")]
 
-            string [\" characters (:ws \")]
+            string [\" (action clear-sb) characters (:ws \") (action push-sb)]
 
-            number [(capture integer (? frac) (? exp)) whitespace]
+            number (:ws (capture integer (? frac) (? exp)))
 
             characters (/ (* normal-character)
-                          ["\\" escaped-character])
+                          [\\ escaped-character])
 
             quote-backslash "\"\\"
-            normal-character [(not quote-backslash) any]
+            normal-character [(not quote-backslash) any (action append-last)]
             escaped-character (/ quote-backslash
                                  "b"
                                  "f"
@@ -26,10 +28,12 @@
                                  "r"
                                  "t"
                                  unicode)
-            unicode ["u" (capture (class hexdigit)
-                                  (class hexdigit)
-                                  (class hexdigit)
-                                  (class hexdigit))]
+            unicode ["u"
+                     (capture (class hexdigit)
+                              (class hexdigit)
+                              (class hexdigit)
+                              (class hexdigit))
+                     (action append-hexdigit)]
             integer [(? "-") (/ [(class digit19) digits]
                                 (class digit))]
             digits  [(class digit) (* (class digit))]
