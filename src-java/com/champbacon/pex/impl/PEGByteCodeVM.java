@@ -100,7 +100,6 @@ public final class PEGByteCodeVM // implements PEGVM
         s.setCaptureHeight(captureTop);
     }
 
-
     // VALIDATE SEMANTICS
     private void opBackCommit() {
         stk--;
@@ -118,7 +117,6 @@ public final class PEGByteCodeVM // implements PEGVM
         opFail();
     }
 
-    // TODO
     private void opFail() {
 
         // pop off any plain CALL frames
@@ -159,7 +157,7 @@ public final class PEGByteCodeVM // implements PEGVM
             subjectPointer++;
         } else opFail();
     }
-    
+
     // Determine Capture Stack shape
     private void opBeginCapture() {
         unimplemented();
@@ -167,6 +165,21 @@ public final class PEGByteCodeVM // implements PEGVM
 
     private void opEndCapture() {
         unimplemented();
+    }
+
+    private void opAction() {
+        ParseAction a = actions[pc];
+        // a.execute(this);
+        pc++;
+        unimplemented();
+    }
+
+    private void opCharset() {
+        CharMatcher m = matchers[pc];
+        if (subjectPointer < input.length && m.match(input[subjectPointer])) {
+            pc++;
+            subjectPointer++;
+        } else opFail();
     }
 
     private void debug(int op) {
@@ -202,10 +215,10 @@ public final class PEGByteCodeVM // implements PEGVM
                 case OpCodes.END:                                 break vm;
 
                 case OpCodes.MATCH_CHAR:      opMatchChar();      break;
-                case OpCodes.TEST_CHAR:       unimplemented();    break;
-                case OpCodes.CHARSET:         unimplemented();    break;
-                case OpCodes.TEST_CHARSET:    unimplemented();    break;
+                case OpCodes.CHARSET:         opCharset();        break;
                 case OpCodes.ANY:             opAny();            break;
+                case OpCodes.TEST_CHAR:       unimplemented();    break;
+                case OpCodes.TEST_CHARSET:    unimplemented();    break;
                 case OpCodes.TEST_ANY:        unimplemented();    break;
                 case OpCodes.SPAN:            unimplemented();    break;
 
@@ -215,7 +228,7 @@ public final class PEGByteCodeVM // implements PEGVM
                 case OpCodes.BEHIND:          unimplemented();    break;
                 case OpCodes.END_OF_INPUT:    unimplemented();    break;
 
-                case OpCodes.ACTION:          unimplemented();    break;
+                case OpCodes.ACTION:          opAction();    break;
             }
 
 
