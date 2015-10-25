@@ -155,7 +155,7 @@
             ;;'reduce
             ;;(reduce-value-stack (next l))
 
-            ;;'action
+            'action
             (action (fnext l))
 
             :else 

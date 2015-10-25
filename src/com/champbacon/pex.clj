@@ -22,5 +22,5 @@
    (when-not (contains? data entrypoint)
      (throw (ex-info "Unknown entrypoint" {:grammar data
                                            :entrypoint entrypoint})))
-   (let [ast (tree/parse-grammar data macros actions)]
-     (codegen/emit-instructions ast entrypoint))))
+   (let [ast (tree/parse-grammar data macros)]
+     (codegen/emit-instructions ast actions entrypoint))))
