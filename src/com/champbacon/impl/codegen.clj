@@ -104,7 +104,7 @@
 
 (defn emit-action
   [env ast]
-  (let [n (or (get (:actions env) (:target ast))
+  (let [n (or (get (:actions env) (keyword (:target ast)))
               (throw (ex-info "Action not found" ast)))]
     [[:action n]]))
 
@@ -168,9 +168,7 @@
                :full-capture
                :behind]]
     (into {} (map-indexed (fn [i op] [op i]))
-          )))
-
-
+          insts)))
 
 (defn link
   "Turns all symbolic jumps into relative address jumps"
@@ -178,14 +176,20 @@
   (let [[insts labels] (reduce (fn [[insts labels] [op arg :as inst]]
                                  (if (= :label op)
                                    [insts (assoc labels arg (count insts))]
-                                   [(conj insts inst) labels]))
+                                   [(into insts inst) labels]))
                                [[] {}] instructions)
 
-        redirect (fn [[op arg :as inst] pc]
-                   (if (branching? op)
-                     (assoc inst 1 (if-let [dest (labels arg)] (- dest pc) arg))
-                     inst))]
-    (mapv redirect insts (range))))
+        patch-jumps (fn [stream]
+                      (let [n (count stream)]
+                        (loop [i 0 stream stream]
+                          (if (< i n)
+                            (let [op (get stream i)]
+                              (if (and (keyword? op) (branching? op))
+                                (let [target (inc i)]
+                                  (recur (inc target) (update stream target labels)))
+                                (recur (inc i) stream)))
+                            stream))))]
+    (patch-jumps insts)))
 
 (defn add-entrypoint
   [env code entrypoint]
@@ -201,7 +205,8 @@
   (let [current-id (atom 0)]
     {:non-terminals (set (keys grammar))
      :next-label #(swap! current-id inc)
-     :actions (into {} (map vector (keys actions) (range)))}))
+     :actions (into {} (map vector (keys actions) (range)))
+     :action-impls (vec (vals actions))}))
 
 (defn emit-instructions
   [grammar actions entrypoint]
