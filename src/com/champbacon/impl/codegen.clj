@@ -167,7 +167,10 @@
                :begin-capture OpCodes/BEGIN_CAPTURE
                :end-capture OpCodes/END_CAPTURE
                :full-capture OpCodes/FULL_CAPTURE
-               :behind OpCodes/BEHIND}]
+               :behind OpCodes/BEHIND
+           :end-of-input OpCodes/END_OF_INPUT
+           :action OpCodes/ACTION
+           }]
     (fn [kw]
       (or (get m kw)
           (throw (IllegalArgumentException. (str "No opcode definied " kw)))))))

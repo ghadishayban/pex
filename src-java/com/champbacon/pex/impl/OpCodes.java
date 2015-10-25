@@ -25,4 +25,8 @@ public interface OpCodes {
     final int END_CAPTURE     = 18;
     final int FULL_CAPTURE    = 19;
     final int BEHIND          = 20;
+
+    final int END_OF_INPUT    = 21;
+
+    final int ACTION          = 22;
 }

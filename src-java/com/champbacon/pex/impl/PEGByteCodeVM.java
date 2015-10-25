@@ -125,7 +125,7 @@ public final class PEGByteCodeVM // implements PEGVM
     }
 
     private void opEnd() {
-        
+
     }
 
     private void debug(int op) {
@@ -140,6 +140,7 @@ public final class PEGByteCodeVM // implements PEGVM
 
     public Object[] execute(char[] in, Object context) {
 
+        vm:
         while (true) {
             final int op = instructions[pc++];
 
@@ -159,7 +160,7 @@ public final class PEGByteCodeVM // implements PEGVM
 
                 case OpCodes.FAIL_TWICE:      opFailTwice();      break;
                 case OpCodes.FAIL:            opFail();           break;
-                case OpCodes.END:             opEnd();            break;
+                case OpCodes.END:             opEnd();            break vm;
 
                 case OpCodes.MATCH_CHAR:                       break;
                 case OpCodes.TEST_CHAR:                        break;
@@ -173,8 +174,9 @@ public final class PEGByteCodeVM // implements PEGVM
                 case OpCodes.END_CAPTURE:                      break;
                 case OpCodes.FULL_CAPTURE:                     break;
                 case OpCodes.BEHIND:       unimplemented();         break;
+                case OpCodes.END_OF_INPUT:  unimplemented(); break;
 
-
+                case OpCodes.ACTION:      break;
             }
 
 
