@@ -1,4 +1,5 @@
-(ns com.champbacon.impl.codegen)
+(ns com.champbacon.impl.codegen
+  (:import com.champbacon.pex.impl.OpCodes))
 
 (declare emit)
 
@@ -144,31 +145,32 @@
     :partial-commit})
 
 (def op->code
-  (let [insts [:call
-               :ret
-               :choice
-               :commit
-               :partial-commit
-               :back-commit
-               :jump
-               :fail-twice
-               :fail
-               :end
+  (let [m {:call OpCode/CALL
+               :ret OpCode/RET
+               :choice OpCode/CHOICE
+               :commit OpCode/COMMIT
+               :partial-commit OpCode/PARTIAL_COMMIT
+               :back-commit  OpCode/BACK_COMMIT
+               :jump OpCode/JUMP
+               :fail-twice  OpCode/FAIL_TWICE
+               :fail   OpCode/FAIL
+               :end  OpCode/END
 
-               :char
-               :test-char
-               :charset
-               :test-charset
-               :any
-               :test-any
-               :span
+               :char  OpCode/MATCH_CHAR
+               :test-char  OpCode/TEST_MATCH
+               :charset OpCode/CHARSET
+               :test-charset OpCode/TEST_CHARSET
+               :any OpCode/ANY
+               :test-any OpCode/TEST_ANY
+               :span OpCode/SPAN
 
-               :begin-capture
-               :end-capture
-               :full-capture
-               :behind]]
-    (into {} (map-indexed (fn [i op] [op i]))
-          insts)))
+               :begin-capture OpCode/BEGIN_CAPTURE
+               :end-capture OpCode/END_CAPTURE
+               :full-capture OpCode/FULL_CAPTURE
+               :behind OpCode/BEHIND}]
+    (fn [kw]
+      (or (get m kw)
+          (throw (IllegalArgumentException. (str "No opcode definied " kw)))))))
 
 (defn link
   "Turns all symbolic jumps into relative address jumps"

@@ -1,48 +1,57 @@
 
 package com.champbacon.pex.impl;
 
-/* stack frame contents:
-  [return-address, capture-height, subject-position ...*]
+// import java.lang.CharSequence;
+import com.champbacon.pex.ParseAction;
+import com.champbacon.pex.CharMatcher;
+import com.champbacon.pex.PEGVM;
 
-*/
+public final class PEGByteCodeVM // implements PEGVM
+{
 
+    public static final int INITIAL_STACK    = 16;
+    public static final int INITIAL_CAPTURES = 4;
 
-import java.lang.CharSequence;
-import java.util.ArrayList;
+    private StackEntry[] stack = new StackEntry[INITIAL_STACK];
+    private int stk;
 
-import clojure.lang.IFn;
-
-public final class PEGVirtualMachine {
-
-    public static int INITIAL_STACK = 3 * 16;
-    public static int INITIAL_CAPTURES = 4;
-
-    private int[] stack;
-    private int sp;
-
-    private ArrayList[] captureStack = new ArrayList[Object](INITIAL_CAPTURES);
+    private Object[] captureStack = new Object[INITIAL_CAPTURES];
     private int captureTop = 0;
 
-    final int[] instructions;
-    final Object[] cbs;
+    private final int[] instructions;
 
-    public PEGVirtualMachine(int[] instructions, Object[] cbs) {
+    private final ParseAction[] actions;
+    private final CharMatcher[] matchers;
+
+    private int pc = 0;
+    private int subjectPointer = 0;
+
+    private final StackEntry ensure1() {
+        if (stk >= stack.length) doubleStack();
+        StackEntry e = stack[stk];
+        if (e == null) stack[stk] = e = new StackEntry();
+        return e;
+    }
+
+    private final void doubleStack() {
+        StackEntry[] newStack = new StackEntry[stack.length << 1];
+        System.arraycopy(stack, 0, newStack, 0, stack.length);
+        stack = newStack;
+    }
+
+    private final void doubleCaptures() {
+        Object[] newCaptures = new Object[captureStack.length << 1];
+        System.arraycopy(captureStack, 0, newCaptures, 0, captureStack.length);
+        captureStack = newCaptures;
+    }
+
+    public PEGByteCodeVM(int[] instructions, CharMatcher[] matchers, ParseAction[] actions) {
         this.instructions = instructions;
-        this.cbs = cbs;
+        this.actions = actions;
+        this.matchers = matchers;
     }
 
-    private void maybeGrowStack() {
-        if (sp == stack.length) {
-            int[] ns = new int[stack.length*2];
-            System.arraycopy(stack, 0, ns, 0, stack.length);
-            stack = ns;
-        }
-    }
-
-    private void maybeGrowCaptures() {
-    }
-
-    public Object[] execute(CharSequence in, Object context) {
+/*    public Object[] execute(CharSequence in, Object context) {
         // stack
         // ValueStack
         int pc = 0; // Fail marker when -1
@@ -124,5 +133,5 @@ public final class PEGVirtualMachine {
 
             }
         }
-    }
+    } */
 }
