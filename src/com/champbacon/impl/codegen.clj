@@ -145,29 +145,29 @@
     :partial-commit})
 
 (def op->code
-  (let [m {:call OpCode/CALL
-               :ret OpCode/RET
-               :choice OpCode/CHOICE
-               :commit OpCode/COMMIT
-               :partial-commit OpCode/PARTIAL_COMMIT
-               :back-commit  OpCode/BACK_COMMIT
-               :jump OpCode/JUMP
-               :fail-twice  OpCode/FAIL_TWICE
-               :fail   OpCode/FAIL
-               :end  OpCode/END
+  (let [m {:call OpCodes/CALL
+               :ret OpCodes/RET
+               :choice OpCodes/CHOICE
+               :commit OpCodes/COMMIT
+               :partial-commit OpCodes/PARTIAL_COMMIT
+               :back-commit  OpCodes/BACK_COMMIT
+               :jump OpCodes/JUMP
+               :fail-twice  OpCodes/FAIL_TWICE
+               :fail   OpCodes/FAIL
+               :end  OpCodes/END
 
-               :char  OpCode/MATCH_CHAR
-               :test-char  OpCode/TEST_MATCH
-               :charset OpCode/CHARSET
-               :test-charset OpCode/TEST_CHARSET
-               :any OpCode/ANY
-               :test-any OpCode/TEST_ANY
-               :span OpCode/SPAN
+               :char  OpCodes/MATCH_CHAR
+               :test-char  OpCodes/TEST_CHAR
+               :charset OpCodes/CHARSET
+               :test-charset OpCodes/TEST_CHARSET
+               :any OpCodes/ANY
+               :test-any OpCodes/TEST_ANY
+               :span OpCodes/SPAN
 
-               :begin-capture OpCode/BEGIN_CAPTURE
-               :end-capture OpCode/END_CAPTURE
-               :full-capture OpCode/FULL_CAPTURE
-               :behind OpCode/BEHIND}]
+               :begin-capture OpCodes/BEGIN_CAPTURE
+               :end-capture OpCodes/END_CAPTURE
+               :full-capture OpCodes/FULL_CAPTURE
+               :behind OpCodes/BEHIND}]
     (fn [kw]
       (or (get m kw)
           (throw (IllegalArgumentException. (str "No opcode definied " kw)))))))

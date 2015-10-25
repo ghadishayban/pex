@@ -1,4 +1,4 @@
-package com.champbacon.pex;
+package com.champbacon.pex.impl;
 
 public interface OpCodes {
 
