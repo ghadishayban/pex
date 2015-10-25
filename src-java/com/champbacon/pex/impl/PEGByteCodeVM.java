@@ -143,14 +143,38 @@ public final class PEGByteCodeVM // implements PEGVM
         }
     }
 
+/*    private void opTestChar() {
+        int ch = instructions[pc];
+        if (subjectPointer < input.length && input[pc] == ch) {
+            pc++;
+            subjectPointer++;
+        } else {
+            opFail();
+        }
+    }
+    */
+
+    private void opAny() {
+        if (subjectPointer < input.length) {
+            subjectPointer++;
+        } else opFail();
+    }
+    
+    // Determine Capture Stack shape
+    private void opBeginCapture() {
+        unimplemented();
+    }
+
+    private void opEndCapture() {
+        unimplemented();
+    }
+
     private void debug(int op) {
-
-
+        System.out.printf("{:op %d :pc %d :sub %d :captop %d}\n", instructions[pc], pc, subjectPointer, captureTop);
     }
 
     private void unimplemented() {
         throw new UnsupportedOperationException();
-
     }
 
     public void execute() {
@@ -178,20 +202,20 @@ public final class PEGByteCodeVM // implements PEGVM
                 case OpCodes.END:                                 break vm;
 
                 case OpCodes.MATCH_CHAR:      opMatchChar();      break;
-                case OpCodes.TEST_CHAR:                        break;
-                case OpCodes.CHARSET:                          break;
-                case OpCodes.TEST_CHARSET:                     break;
-                case OpCodes.ANY:                              break;
-                case OpCodes.TEST_ANY:                         break;
-                case OpCodes.SPAN:                             break;
+                case OpCodes.TEST_CHAR:       unimplemented();    break;
+                case OpCodes.CHARSET:         unimplemented();    break;
+                case OpCodes.TEST_CHARSET:    unimplemented();    break;
+                case OpCodes.ANY:             opAny();            break;
+                case OpCodes.TEST_ANY:        unimplemented();    break;
+                case OpCodes.SPAN:            unimplemented();    break;
 
-                case OpCodes.BEGIN_CAPTURE:                    break;
-                case OpCodes.END_CAPTURE:                      break;
-                case OpCodes.FULL_CAPTURE:                     break;
-                case OpCodes.BEHIND:       unimplemented();         break;
-                case OpCodes.END_OF_INPUT:  unimplemented(); break;
+                case OpCodes.BEGIN_CAPTURE:   opBeginCapture();   break;
+                case OpCodes.END_CAPTURE:     opEndCapture();     break;
+                case OpCodes.FULL_CAPTURE:    unimplemented();    break;
+                case OpCodes.BEHIND:          unimplemented();    break;
+                case OpCodes.END_OF_INPUT:    unimplemented();    break;
 
-                case OpCodes.ACTION:      break;
+                case OpCodes.ACTION:          unimplemented();    break;
             }
 
 
