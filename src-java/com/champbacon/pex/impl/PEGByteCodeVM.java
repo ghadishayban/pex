@@ -1,13 +1,14 @@
 
 package com.champbacon.pex.impl;
 
-// import java.lang.CharSequence;
 import com.champbacon.pex.ParseAction;
 import com.champbacon.pex.CharMatcher;
 import com.champbacon.pex.PEGVM;
 
 public final class PEGByteCodeVM // implements PEGVM
 {
+
+    private static boolean DEBUG = true;
 
     public static final int INITIAL_STACK    = 16;
     public static final int INITIAL_CAPTURES = 4;
@@ -25,6 +26,12 @@ public final class PEGByteCodeVM // implements PEGVM
 
     private int pc = 0;
     private int subjectPointer = 0;
+
+    public PEGByteCodeVM(int[] instructions, CharMatcher[] matchers, ParseAction[] actions) {
+        this.instructions = instructions;
+        this.actions = actions;
+        this.matchers = matchers;
+    }
 
     private final StackEntry ensure1() {
         if (stk >= stack.length) doubleStack();
@@ -45,93 +52,70 @@ public final class PEGByteCodeVM // implements PEGVM
         captureStack = newCaptures;
     }
 
-    public PEGByteCodeVM(int[] instructions, CharMatcher[] matchers, ParseAction[] actions) {
-        this.instructions = instructions;
-        this.actions = actions;
-        this.matchers = matchers;
+    private void opCall() {
+        StackEntry e = ensure1();
+
+        e.setCaptureHeight(captureTop);
+        e.setSubjectPosition(subjectPointer);
+        e.setReturnAddress(pc + 1);
+
+        stk++;
+        pc = instructions[pc];
     }
 
-/*    public Object[] execute(CharSequence in, Object context) {
-        // stack
-        // ValueStack
-        int pc = 0; // Fail marker when -1
-        int subjectPosition;
-        int captureBottom = 0;
-        int captureTop = 0;
+    private void opRet() {
+        StackEntry s = stack[stk];
+        captureTop = s.getCaptureHeight();
+        subjectPointer = s.getSubjectPosition();
+        pc = s.getReturnAddress();
+    }
 
-        vm:
-        for(;;) {
-            int op = instructions[pc];
+    private void debug(int op) {
+
+
+    }
+
+    public Object[] execute(char[] in, Object context) {
+
+        while (true) {
+            final int op = instructions[pc++];
+
+            if (DEBUG) debug(op);
 
             switch(op) {
+                case OpCodes.CALL:               opCall();     break;
+                case OpCodes.RET:                opRet();      break;
 
-                case 0:  // call
-                    maybeGrowStack();
+                case OpCodes.CHOICE:                           break;
+                case OpCodes.COMMIT:                           break;
 
-                    int target = instructions[pc+1];
-                    int returnAddress = instructions[pc+2];
+                case OpCodes.PARTIAL_COMMIT:                   break;
+                case OpCodes.BACK_COMMIT:                      break;
 
-                    stack[sp] = returnAddress;
-                    pc = target;
+                case OpCodes.JUMP:                             break;
 
-                case 1:  // ret
+                case OpCodes.FAIL_TWICE:                       break;
+                case OpCodes.FAIL:                             break;
+                case OpCodes.END:                              break;
 
+                case OpCodes.MATCH_CHAR:                       break;
+                case OpCodes.TEST_CHAR:                        break;
+                case OpCodes.CHARSET:                          break;
+                case OpCodes.TEST_CHARSET:                     break;
+                case OpCodes.ANY:                              break;
+                case OpCodes.TEST_ANY:                         break;
+                case OpCodes.SPAN:                             break;
 
-                case 2:  // choice
-                case 3:  // commit
-                case 4:  // partial-commit
-                case 5:  // back-commit
-                case 6: // jump
-                    pc = instructions[pc+1];
-                    break;
-                case 7: // fail-twice
-                    sp -= 3;
-                    // continue, don't break
-                case 8: // fail
-                    pc = -1;
-                    break;
-                case 9: // end
+                case OpCodes.BEGIN_CAPTURE:                    break;
+                case OpCodes.END_CAPTURE:                      break;
+                case OpCodes.FULL_CAPTURE:                     break;
+                case OpCodes.BEHIND:                           break;
 
-                case 10:  // char
-                    int testChar = instructions[pc+1];
-                    int subjectPos = stack[sp]
-                    int inputChar = in.charAt(subjectPosition);
-                    if (inputChar == testChar) {
-                        pc = -1;
-                    } else {
-                        pc = pc + 2;
-                    }
-                    break;
-                case 11:  // test-char
-                case 12:  // charset
-                    context[]
-                case 13:  // test-charset
-                case 14: // any
-                case 15: // test-any
-                case 16: // span
-
-
-                case 17: // begin-capture
-                case 18: // end-capture
-                case 19: // full-capture
-
-                case 20: // behind
-                case 21: // action
-                    // IFn action = (IFn) cbs[instructions[pc+1]];
-                    captureStack.subList()
-                    // action.invoke(null, ); // parser, context
-
-                default:
 
             }
 
-            // backtrack?
-            if (pc == -1) {
-                // pop stack frames
 
-            }
-
-            }
         }
-    } */
+
+    }
 }
