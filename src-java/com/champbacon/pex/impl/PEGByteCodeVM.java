@@ -27,10 +27,19 @@ public final class PEGByteCodeVM // implements PEGVM
     private int pc = 0;
     private int subjectPointer = 0;
 
-    public PEGByteCodeVM(int[] instructions, CharMatcher[] matchers, ParseAction[] actions) {
+    private final char[] input;
+    private Object userParseContext;
+
+    public PEGByteCodeVM(int[] instructions,
+                         CharMatcher[] matchers,
+                         ParseAction[] actions,
+                         char[] input,
+                         Object userParseContext) {
         this.instructions = instructions;
         this.actions = actions;
         this.matchers = matchers;
+        this.input = input;
+        this.userParseContext = userParseContext;
     }
 
     private final StackEntry ensure1() {
@@ -124,8 +133,14 @@ public final class PEGByteCodeVM // implements PEGVM
         pc = s.getSubjectPosition();
     }
 
-    private void opEnd() {
-
+    private void opMatchChar() {
+        int ch = instructions[pc];
+        if (subjectPointer < input.length && input[pc] == ch) {
+            pc++;
+            subjectPointer++;
+        } else {
+            opFail();
+        }
     }
 
     private void debug(int op) {
@@ -138,7 +153,7 @@ public final class PEGByteCodeVM // implements PEGVM
 
     }
 
-    public Object[] execute(char[] in, Object context) {
+    public void execute() {
 
         vm:
         while (true) {
@@ -160,9 +175,9 @@ public final class PEGByteCodeVM // implements PEGVM
 
                 case OpCodes.FAIL_TWICE:      opFailTwice();      break;
                 case OpCodes.FAIL:            opFail();           break;
-                case OpCodes.END:             opEnd();            break vm;
+                case OpCodes.END:                                 break vm;
 
-                case OpCodes.MATCH_CHAR:                       break;
+                case OpCodes.MATCH_CHAR:      opMatchChar();      break;
                 case OpCodes.TEST_CHAR:                        break;
                 case OpCodes.CHARSET:                          break;
                 case OpCodes.TEST_CHARSET:                     break;
