@@ -65,13 +65,76 @@ public final class PEGByteCodeVM // implements PEGVM
 
     private void opRet() {
         StackEntry s = stack[stk];
-        captureTop = s.getCaptureHeight();
-        subjectPointer = s.getSubjectPosition();
+//        captureTop = s.getCaptureHeight();
+//        subjectPointer = s.getSubjectPosition();
         pc = s.getReturnAddress();
+    }
+
+    private void opChoice() {
+        StackEntry s = ensure1();
+        s.setReturnAddress(instructions[pc]);
+        s.setCaptureHeight(captureTop);
+        s.setSubjectPosition(subjectPointer);
+
+        pc++;
+
+    }
+
+    private void opCommit() {
+        stk--;
+        pc++;
+    }
+
+    private void opPartialCommit() {
+        StackEntry s = stack[stk-1];
+        s.setSubjectPosition(subjectPointer);
+        s.setCaptureHeight(captureTop);
+    }
+
+
+    // VALIDATE SEMANTICS
+    private void opBackCommit() {
+        stk--;
+        StackEntry s = stack[stk];
+        subjectPointer = s.getSubjectPosition();
+        captureTop = s.getCaptureHeight();
+    }
+
+    private void opJump() {
+        pc = instructions[pc];
+    }
+
+    private void opFailTwice() {
+        stk--;
+        opFail();
+    }
+
+    // TODO
+    private void opFail() {
+
+        // pop off any plain CALL frames
+        StackEntry s;
+        do {
+            stk--;
+            s = stack[stk];
+        } while (s.isCall());
+
+        subjectPointer = s.getSubjectPosition();
+        captureTop = s.getCaptureHeight();
+        pc = s.getSubjectPosition();
+    }
+
+    private void opEnd() {
+        
     }
 
     private void debug(int op) {
 
+
+    }
+
+    private void unimplemented() {
+        throw new UnsupportedOperationException();
 
     }
 
@@ -83,20 +146,20 @@ public final class PEGByteCodeVM // implements PEGVM
             if (DEBUG) debug(op);
 
             switch(op) {
-                case OpCodes.CALL:               opCall();     break;
-                case OpCodes.RET:                opRet();      break;
+                case OpCodes.CALL:            opCall();           break;
+                case OpCodes.RET:             opRet();            break;
 
-                case OpCodes.CHOICE:                           break;
-                case OpCodes.COMMIT:                           break;
+                case OpCodes.CHOICE:          opChoice();         break;
+                case OpCodes.COMMIT:          opCommit();         break;
 
-                case OpCodes.PARTIAL_COMMIT:                   break;
-                case OpCodes.BACK_COMMIT:                      break;
+                case OpCodes.PARTIAL_COMMIT:  opPartialCommit();  break;
+                case OpCodes.BACK_COMMIT:     opBackCommit();     break;
 
-                case OpCodes.JUMP:                             break;
+                case OpCodes.JUMP:            opJump();           break;
 
-                case OpCodes.FAIL_TWICE:                       break;
-                case OpCodes.FAIL:                             break;
-                case OpCodes.END:                              break;
+                case OpCodes.FAIL_TWICE:      opFailTwice();      break;
+                case OpCodes.FAIL:            opFail();           break;
+                case OpCodes.END:             opEnd();            break;
 
                 case OpCodes.MATCH_CHAR:                       break;
                 case OpCodes.TEST_CHAR:                        break;
@@ -109,7 +172,7 @@ public final class PEGByteCodeVM // implements PEGVM
                 case OpCodes.BEGIN_CAPTURE:                    break;
                 case OpCodes.END_CAPTURE:                      break;
                 case OpCodes.FULL_CAPTURE:                     break;
-                case OpCodes.BEHIND:                           break;
+                case OpCodes.BEHIND:       unimplemented();         break;
 
 
             }

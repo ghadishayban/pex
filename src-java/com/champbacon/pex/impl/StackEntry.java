@@ -31,4 +31,7 @@ final class StackEntry {
     }
 
 
+    public boolean isCall() {
+        return subjectPosition == -1;
+    };
 }
