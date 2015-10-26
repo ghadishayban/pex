@@ -27,7 +27,7 @@
 
 (defn print-instructions
   [insts]
-  (printf "ADDR INST")
+  (printf "ADDR INST%n")
   (doseq [[idx inst] (map vector (range) insts)]
     (printf "%4d %s%n" idx inst)))
 
@@ -35,10 +35,10 @@
   (doto 'com.champbacon.pex require in-ns)
   (import com.champbacon.pex.impl.PEGByteCodeVM)
   (def simple '{email [(capture user) "@" (capture domain)]
-              user   "ghadi.shayban"
-              domain "pokitdok.com"})
+                user   (/ "ghadi.shayban" "macro" "ninewest")
+                domain "pokitdok.com"})
   (def instructions (compile simple 'email {} {}))
   (def is (int-array (codegen/transform-instructions instructions)))
-  (def inp (.toCharArray "ghadi.shayban@pokitdok.com"))
+  (def inp (.toCharArray "macro@pokitdok.com"))
   (def vm (PEGByteCodeVM. is nil nil inp nil))
   )
