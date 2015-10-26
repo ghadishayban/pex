@@ -25,7 +25,11 @@
    (let [ast (tree/parse-grammar data macros)]
      (codegen/emit-instructions ast actions entrypoint))))
 
-
+(defn print-instructions
+  [insts]
+  (printf "ADDR INST")
+  (doseq [[idx inst] (map vector (range) insts)]
+    (printf "%4d %s%n" idx inst)))
 
 (comment
   (doto 'com.champbacon.pex require in-ns)

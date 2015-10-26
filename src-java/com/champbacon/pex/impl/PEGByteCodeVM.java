@@ -63,11 +63,18 @@ public final class PEGByteCodeVM // implements PEGVM
         captureStack = newCaptures;
     }
 
+    private void debugStack(StackEntry s) {
+	if (DEBUG)
+	    System.out.println(stk + " " + s);
+    }
+
     private void opCall() {
         StackEntry e = ensure1();
 
         e.setCaptureHeight(captureTop);
         e.setReturnAddress(pc + 1);
+
+	debugStack(e);
 
         stk++;
         pc = instructions[pc];
@@ -76,7 +83,8 @@ public final class PEGByteCodeVM // implements PEGVM
     private void opRet() {
 	stk--;
         StackEntry s = stack[stk];
-//        captureTop = s.getCaptureHeight();
+	debugStack(s);
+ //        captureTop = s.getCaptureHeight();
 //        subjectPointer = s.getSubjectPosition();
         pc = s.getReturnAddress();
     }
@@ -87,13 +95,17 @@ public final class PEGByteCodeVM // implements PEGVM
         s.setCaptureHeight(captureTop);
         s.setSubjectPosition(subjectPointer);
 
+	stk++;
+
+	debugStack(s);
+
         pc++;
 
     }
 
     private void opCommit() {
         stk--;
-        pc++;
+        pc = instructions[pc];
     }
 
     private void opPartialCommit() {
@@ -125,14 +137,13 @@ public final class PEGByteCodeVM // implements PEGVM
         // pop off any plain CALL frames
         StackEntry s;
         do {
-	    if (DEBUG) System.out.print(stk + " ");
             stk--;
             s = stack[stk];
-	    if (DEBUG) System.out.println(s);
+	    debugStack(s);
         } while (s.isCall() && stk > 0);
 
 	if (stk == 0) {
-	    if (DEBUG) System.out.println("Grammar match failed");
+	    if (DEBUG) System.out.println("Grammar match failed, jumping to final instruction");
 
 	    matchFailed = true;
 	    pc = instructions.length - 1; // set to the final END instruction
@@ -141,7 +152,7 @@ public final class PEGByteCodeVM // implements PEGVM
 
         subjectPointer = s.getSubjectPosition();
         captureTop = s.getCaptureHeight();
-        pc = s.getSubjectPosition();
+        pc = s.getReturnAddress();
     }
 
     private void opMatchChar() {
