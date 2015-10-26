@@ -9,7 +9,7 @@ public interface ValueStackManip {
 
     public int getCaptureStart();
     public int getCaptureEnd();
-    public int setCaptureEnd(int i);
+    public void setCaptureEnd(int i);
     public Object[] getCurrentCaptures();
     public void push(Object v);
 }

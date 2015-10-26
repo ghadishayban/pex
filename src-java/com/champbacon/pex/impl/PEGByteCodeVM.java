@@ -3,7 +3,8 @@ package com.champbacon.pex.impl;
 
 import com.champbacon.pex.ParseAction;
 import com.champbacon.pex.CharMatcher;
-import com.champbacon.pex.PEGVM;
+import com.champbacon.pex.PEGMatcher;
+import com.champbacon.pex.ValueStackManip;
 
 public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 {
@@ -223,7 +224,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     private void opAction() {
         ParseAction a = actions[pc];
-        // a.execute(this);
+        a.execute(this);
         pc++;
         unimplemented();
     }
@@ -311,6 +312,10 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     public int getCaptureEnd() {
         return captureTop;
+    }
+
+    public void setCaptureEnd(int i) {
+	captureTop = i;
     }
 
     public Object[] getCurrentCaptures() {
