@@ -192,7 +192,13 @@ public final class PEGByteCodeVM // implements PEGVM
     }
 
     private void debug(int op) {
-        System.out.printf("{:op %d :pc %d :sub %d :captop %d}\n", instructions[pc], pc, subjectPointer, captureTop);
+        System.out.printf(
+                "{:op %2d :pc %3d :spos %5d :captop %2d :in \"%s\"}%n",
+                instructions[pc],
+                pc,
+                subjectPointer,
+                captureTop,
+                input[subjectPointer]);
     }
 
     private void unimplemented() {
@@ -243,5 +249,11 @@ public final class PEGByteCodeVM // implements PEGVM
 
         }
 
+    }
+
+    public Object[] getCaptures() {
+        Object[] captures = new Object[captureTop];
+        System.arraycopy(captureStack, 0, captures, 0, captureTop);
+        return captures;
     }
 }
