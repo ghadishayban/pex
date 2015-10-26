@@ -1,10 +1,14 @@
 package com.champbacon.pex.impl;
 
+import java.util.IllegalFormatCodePointException;
+
 final class StackEntry {
 
+    static final int NO_OPEN_CAPTURE = -1;
     private int returnAddress;
     private int subjectPosition;
     private int captureHeight;
+    private int currentCaptureBegin = NO_OPEN_CAPTURE;
 
     public int getCaptureHeight() {
         return captureHeight;
@@ -30,8 +34,19 @@ final class StackEntry {
         this.returnAddress = returnAddress;
     }
 
-
     public boolean isCall() {
         return subjectPosition == -1;
     };
+
+    public void setCurrentCaptureBegin(int subjectPosition) {
+        if (currentCaptureBegin == NO_OPEN_CAPTURE) {
+            currentCaptureBegin = subjectPosition;
+        } else throw new IllegalStateException("Nested capture within a single rule.");
+    }
+
+    public int getCurrentCaptureBegin() {
+        if (currentCaptureBegin != NO_OPEN_CAPTURE)
+            return currentCaptureBegin;
+        else throw new IllegalStateException("No open capture.");
+    }
 }

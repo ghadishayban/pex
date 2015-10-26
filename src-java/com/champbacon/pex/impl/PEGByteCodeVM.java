@@ -160,11 +160,20 @@ public final class PEGByteCodeVM // implements PEGVM
 
     // Determine Capture Stack shape
     private void opBeginCapture() {
-        unimplemented();
+        StackEntry s = stack[stk-1];
+        s.setCurrentCaptureBegin(subjectPointer);
     }
 
     private void opEndCapture() {
-        unimplemented();
+        StackEntry s = stack[stk-1];
+        int captureBegin =  s.getCurrentCaptureBegin();
+        int captureEnd = subjectPointer;
+        String cap = new String(input, captureBegin, captureEnd - captureBegin);
+
+        if (captureTop >= captureStack.length) doubleCaptures();
+
+        captureStack[captureTop] = cap;
+        captureTop++;
     }
 
     private void opAction() {
