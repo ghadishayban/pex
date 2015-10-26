@@ -5,7 +5,7 @@ import com.champbacon.pex.ParseAction;
 import com.champbacon.pex.CharMatcher;
 import com.champbacon.pex.PEGVM;
 
-public final class PEGByteCodeVM // implements PEGVM
+public final class PEGByteCodeVM implements PEGVM
 {
 
     private static boolean DEBUG = true;
@@ -25,9 +25,26 @@ public final class PEGByteCodeVM // implements PEGVM
     private final CharMatcher[] matchers;
 
     private int pc = 0;
-    private int subjectPointer = 0;
+
+    private int getMatchEnd() {
+        if (matchFailed) {
+            return -1;
+        }
+        return subjectPointer;
+    }
+
+    private int subjectPointer;
 
     private final char[] input;
+
+    public Object getUserParseContext() {
+        return userParseContext;
+    }
+
+    public void setUserParseContext(Object userParseContext) {
+        this.userParseContext = userParseContext;
+    }
+
     private Object userParseContext;
 
     private boolean matchFailed = false;
@@ -186,7 +203,6 @@ public final class PEGByteCodeVM // implements PEGVM
         } else opFail();
     }
 
-    // Determine Capture Stack shape
     private void opBeginCapture() {
         StackEntry s = stack[stk-1];
         s.setCurrentCaptureBegin(subjectPointer);
@@ -235,7 +251,12 @@ public final class PEGByteCodeVM // implements PEGVM
         throw new UnsupportedOperationException();
     }
 
-    public void execute() {
+    public int match() {
+        return match(0);
+    }
+
+    public int match(int pos) {
+        subjectPointer = pos;
 
         vm:
         while (true) {
@@ -279,11 +300,45 @@ public final class PEGByteCodeVM // implements PEGVM
 
         }
 
+        return getMatchEnd();
+
+    }
+
+    public int getCaptureStart() {
+        StackEntry s = stack[stk - 1];
+        return s.getCaptureHeight();
+    }
+
+    public int getCaptureEnd() {
+        return captureTop;
+    }
+
+    public Object[] getCurrentCaptures() {
+        return captureStack;
+    }
+
+    public char[] getInput() {
+        return input;
+    }
+
+    public int getInputPosition() {
+        return subjectPointer;
+    }
+
+    public void push(Object v) {
+        if (captureTop >= captureStack.length) doubleCaptures();
+        captureStack[captureTop] = v;
+        captureTop++;
     }
 
     public Object[] getCaptures() {
+        if (matchFailed) {
+            return null;
+        }
         Object[] captures = new Object[captureTop];
         System.arraycopy(captureStack, 0, captures, 0, captureTop);
         return captures;
     }
+
+
 }
