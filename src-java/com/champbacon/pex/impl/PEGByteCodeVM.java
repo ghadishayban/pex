@@ -30,6 +30,8 @@ public final class PEGByteCodeVM // implements PEGVM
     private final char[] input;
     private Object userParseContext;
 
+    private boolean matchFailed = false;
+
     public PEGByteCodeVM(int[] instructions,
                          CharMatcher[] matchers,
                          ParseAction[] actions,
@@ -65,7 +67,6 @@ public final class PEGByteCodeVM // implements PEGVM
         StackEntry e = ensure1();
 
         e.setCaptureHeight(captureTop);
-        e.setSubjectPosition(subjectPointer);
         e.setReturnAddress(pc + 1);
 
         stk++;
@@ -118,17 +119,25 @@ public final class PEGByteCodeVM // implements PEGVM
         opFail();
     }
 
-    // TODO handle when fully unwound
     private void opFail() {
 	if (DEBUG) System.out.println("Fail");
 
         // pop off any plain CALL frames
         StackEntry s;
         do {
+	    if (DEBUG) System.out.print(stk + " ");
             stk--;
             s = stack[stk];
 	    if (DEBUG) System.out.println(s);
-        } while (s.isCall());
+        } while (s.isCall() && stk > 0);
+
+	if (stk == 0) {
+	    if (DEBUG) System.out.println("Grammar match failed");
+
+	    matchFailed = true;
+	    pc = instructions.length - 1; // set to the final END instruction
+	    return;
+	}
 
         subjectPointer = s.getSubjectPosition();
         captureTop = s.getCaptureHeight();
@@ -137,11 +146,14 @@ public final class PEGByteCodeVM // implements PEGVM
 
     private void opMatchChar() {
         int ch = instructions[pc];
-	if (DEBUG) System.out.printf("Attempt match %s%n", (char) ch);
+	if (DEBUG) System.out.printf("Matching character %s", (char) ch);
         if (subjectPointer < input.length && input[subjectPointer] == ch) {
+	    if (DEBUG) System.out.println("");
             pc++;
             subjectPointer++;
         } else {
+	    if (DEBUG) System.out.println(" no match");
+
             opFail();
         }
     }

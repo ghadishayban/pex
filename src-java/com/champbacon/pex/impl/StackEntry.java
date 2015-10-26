@@ -5,8 +5,9 @@ import java.util.IllegalFormatCodePointException;
 final class StackEntry {
 
     static final int NO_OPEN_CAPTURE = -1;
+    static final int IS_CALL = -1;
     private int returnAddress;
-    private int subjectPosition;
+    private int subjectPosition = IS_CALL;
     private int captureHeight;
     private int currentCaptureBegin = NO_OPEN_CAPTURE;
 
@@ -51,7 +52,7 @@ final class StackEntry {
     }
 
     public String toString() {
-	return String.format("#frame {:sub %5s :captop %3s :ret %5s}%n",
+	return String.format("#frame {:sub %5s :captop %3s :ret %5s}",
 			     subjectPosition,
 			     captureHeight,
 			     returnAddress);
