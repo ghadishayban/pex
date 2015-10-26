@@ -1,7 +1,6 @@
-
 package com.champbacon.pex;
 
-public interface PEGVM {
+public interface ValueStackManip {
     public Object getUserParseContext();
     public void setUserParseContext(Object ctx);
 
@@ -10,12 +9,7 @@ public interface PEGVM {
 
     public int getCaptureStart();
     public int getCaptureEnd();
+    public int setCaptureEnd(int i);
     public Object[] getCurrentCaptures();
-
-    public Object[] getCaptures();
-
     public void push(Object v);
-
-    public int match();
-    public int match(int pos);
 }

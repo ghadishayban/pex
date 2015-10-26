@@ -41,4 +41,6 @@
   (def is (int-array (codegen/transform-instructions instructions)))
   (def inp (.toCharArray "macro@pokitdok.com"))
   (def vm (PEGByteCodeVM. is nil nil inp nil))
+
+  (.match vm)
   )

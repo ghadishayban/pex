@@ -5,7 +5,7 @@ import com.champbacon.pex.ParseAction;
 import com.champbacon.pex.CharMatcher;
 import com.champbacon.pex.PEGVM;
 
-public final class PEGByteCodeVM implements PEGVM
+public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 {
 
     private static boolean DEBUG = true;
