@@ -17,10 +17,26 @@
 
 (defn compile
   ([data entrypoint actions]
-    (compile data entrypoint {}))
+    (compile data entrypoint actions {}))
   ([data entrypoint actions macros]
    (when-not (contains? data entrypoint)
      (throw (ex-info "Unknown entrypoint" {:grammar data
                                            :entrypoint entrypoint})))
    (let [ast (tree/parse-grammar data macros)]
      (codegen/emit-instructions ast actions entrypoint))))
+
+
+
+(comment
+  (doto 'com.champbacon.pex require in-ns)
+  (import com.champbacon.pex.impl.PEGByteCodeVM)
+  (def simple '{email [user "@" domain]
+              user  "ghadi.shayban"
+              domain "pokitdok.com"})
+  (def instructions (compile simple 'email {} {}))
+  (def is (int-array (codegen/transform-instructions instructions)))
+  (def inp (.toCharArray "ghadi.shayban@pokitdok.com"))
+  (def vm (PEGByteCodeVM. is nil nil inp nil))
+  )
+
+

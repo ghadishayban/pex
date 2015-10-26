@@ -146,7 +146,7 @@
 
 (def op->code
   (let [m {:call OpCodes/CALL
-               :ret OpCodes/RET
+               :return OpCodes/RET
                :choice OpCodes/CHOICE
                :commit OpCodes/COMMIT
                :partial-commit OpCodes/PARTIAL_COMMIT
@@ -167,13 +167,12 @@
                :begin-capture OpCodes/BEGIN_CAPTURE
                :end-capture OpCodes/END_CAPTURE
                :full-capture OpCodes/FULL_CAPTURE
-               :behind OpCodes/BEHIND
+           :behind OpCodes/BEHIND
            :end-of-input OpCodes/END_OF_INPUT
-           :action OpCodes/ACTION
-           }]
+           :action OpCodes/ACTION}]
     (fn [kw]
       (or (get m kw)
-          (throw (IllegalArgumentException. (str "No opcode definied " kw)))))))
+          (throw (IllegalArgumentException. (str "No opcode defined " kw)))))))
 
 (defn link
   "Turns all symbolic jumps into relative address jumps"
@@ -223,3 +222,11 @@
                         (conj [:return])))
         instructions (into [] (mapcat emit-rule) grammar)]
     (link (add-entrypoint env instructions entrypoint))))
+
+(defn transform-instructions
+  [insts]
+  (let [->bytecode (fn [i]
+                     (if (keyword? i)
+                       (op->code i)
+                       i))]
+    (into [] (map ->bytecode) insts)))

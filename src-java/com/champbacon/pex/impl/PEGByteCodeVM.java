@@ -14,7 +14,7 @@ public final class PEGByteCodeVM // implements PEGVM
     public static final int INITIAL_CAPTURES = 4;
 
     private StackEntry[] stack = new StackEntry[INITIAL_STACK];
-    private int stk;
+    private int stk = 0;
 
     private Object[] captureStack = new Object[INITIAL_CAPTURES];
     private int captureTop = 0;
@@ -73,6 +73,7 @@ public final class PEGByteCodeVM // implements PEGVM
     }
 
     private void opRet() {
+	stk--;
         StackEntry s = stack[stk];
 //        captureTop = s.getCaptureHeight();
 //        subjectPointer = s.getSubjectPosition();
@@ -117,13 +118,16 @@ public final class PEGByteCodeVM // implements PEGVM
         opFail();
     }
 
+    // TODO handle when fully unwound
     private void opFail() {
+	if (DEBUG) System.out.println("Fail");
 
         // pop off any plain CALL frames
         StackEntry s;
         do {
             stk--;
             s = stack[stk];
+	    if (DEBUG) System.out.println(s);
         } while (s.isCall());
 
         subjectPointer = s.getSubjectPosition();
@@ -133,7 +137,8 @@ public final class PEGByteCodeVM // implements PEGVM
 
     private void opMatchChar() {
         int ch = instructions[pc];
-        if (subjectPointer < input.length && input[pc] == ch) {
+	if (DEBUG) System.out.printf("Attempt match %s%n", (char) ch);
+        if (subjectPointer < input.length && input[subjectPointer] == ch) {
             pc++;
             subjectPointer++;
         } else {
@@ -143,7 +148,7 @@ public final class PEGByteCodeVM // implements PEGVM
 
 /*    private void opTestChar() {
         int ch = instructions[pc];
-        if (subjectPointer < input.length && input[pc] == ch) {
+        if (subjectPointer < input.length && input[subjectPointer] == ch) {
             pc++;
             subjectPointer++;
         } else {
@@ -191,14 +196,15 @@ public final class PEGByteCodeVM // implements PEGVM
         } else opFail();
     }
 
-    private void debug(int op) {
+    private void debug() {
+	if (subjectPointer >= input.length) return;
         System.out.printf(
-                "{:op %2d :pc %3d :spos %5d :captop %2d :in \"%s\"}%n",
-                instructions[pc],
+                "{:pc %3d :op %2d :subj [\"%s\" %5d] :captop %2d :stk %2d}%n",
                 pc,
-                subjectPointer,
+                instructions[pc],
+                input[subjectPointer], subjectPointer,
                 captureTop,
-                input[subjectPointer]);
+		stk);
     }
 
     private void unimplemented() {
@@ -209,9 +215,9 @@ public final class PEGByteCodeVM // implements PEGVM
 
         vm:
         while (true) {
-            final int op = instructions[pc++];
+            if (DEBUG) debug();
 
-            if (DEBUG) debug(op);
+            final int op = instructions[pc++];
 
             switch(op) {
                 case OpCodes.CALL:            opCall();           break;
