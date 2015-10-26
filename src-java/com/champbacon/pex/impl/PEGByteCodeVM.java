@@ -184,6 +184,7 @@ public final class PEGByteCodeVM // implements PEGVM
     private void opEndCapture() {
         StackEntry s = stack[stk-1];
         int captureBegin =  s.getCurrentCaptureBegin();
+	s.clearOpenCapture();
         int captureEnd = subjectPointer;
         String cap = new String(input, captureBegin, captureEnd - captureBegin);
 

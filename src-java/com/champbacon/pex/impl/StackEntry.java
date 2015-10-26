@@ -45,6 +45,10 @@ final class StackEntry {
         } else throw new IllegalStateException("Nested capture within a single rule.");
     }
 
+    public void clearOpenCapture() {
+	currentCaptureBegin = NO_OPEN_CAPTURE;
+    }
+
     public int getCurrentCaptureBegin() {
         if (currentCaptureBegin != NO_OPEN_CAPTURE)
             return currentCaptureBegin;
