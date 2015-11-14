@@ -1,4 +1,3 @@
-
 package com.champbacon.pex.impl;
 
 import com.champbacon.pex.ParseAction;
@@ -99,7 +98,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opRet() {
-	stk--;
+	    stk--;
         StackEntry s = stack[stk];
 	debugStack(s);
  //        captureTop = s.getCaptureHeight();
@@ -226,7 +225,6 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         ParseAction a = actions[pc];
         a.execute(this);
         pc++;
-        unimplemented();
     }
 
     private void opCharset() {
@@ -344,6 +342,5 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         System.arraycopy(captureStack, 0, captures, 0, captureTop);
         return captures;
     }
-
 
 }

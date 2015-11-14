@@ -3,18 +3,6 @@
   (:require [com.champbacon.impl.tree :as tree]
             [com.champbacon.impl.codegen :as codegen]))
 
-;; ADDS to Stack
-;; :push    ;; puts an abitrary val onto the value stack
-;; :capture ;; puts the full text match onto the value stack
-
-;; transforms stack
-;; :action  ;; #{:reduce :call}  ;; call takes a # of args
-;; :reduce ([] [r] [r i])
-;; REMOVES from stack
-
-(defn match
-  [vm input])
-
 (defn compile
   ([data entrypoint actions]
     (compile data entrypoint actions {}))
@@ -27,7 +15,7 @@
 
 (defn print-instructions
   [insts]
-  (printf "ADDR INST%n")
+  (println "ADDR INST")
   (doseq [[idx inst] (map vector (range) insts)]
     (printf "%4d %s%n" idx inst)))
 

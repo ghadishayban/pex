@@ -63,11 +63,21 @@
            unquoted (capture (* (class nonquotechars)))
            ;; (capture (not \") (* ANY))
            quoted [OWS \"
-                   (capture (/ (class quotechars) "\"\""))
-                   \" OWS]
+                   (capture (* (/ (class quotechars) "\"\"")))
+                   ;; (apply unescape-quotes (* (/ (class quotechars)
+                   ;;                              "\"\"")))
+                   ;;
+
+                   \" OWS
+                   (action unescape-quotes)]
 
            NL [(? \r) \n]
            OWS (* (class :ws))})
+
+(def csv-field '{record [field (* sep field) "\n" EOI]
+                 field  (/ quoted unquoted)
+                 quoted ["\"" [(not "\"") ANY]  ]
+                 sep ","})
 
 (def csv-macros {:ws   (fn [patt] [patt 'whitespace])
                  :join (fn [patt sep] [patt (list '* sep patt)])})
