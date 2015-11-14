@@ -22,7 +22,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private final int[] instructions;
 
     private final ParseAction[] actions;
-    private final CharMatcher[] matchers;
+    private final CharMatcher[] charMatchers;
 
     private int pc = 0;
 
@@ -49,14 +49,12 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     private boolean matchFailed = false;
 
-    public PEGByteCodeVM(int[] instructions,
-                         CharMatcher[] matchers,
-                         ParseAction[] actions,
+    public PEGByteCodeVM(ParsingExpressionGrammar peg,
                          char[] input,
                          Object userParseContext) {
-        this.instructions = instructions;
-        this.actions = actions;
-        this.matchers = matchers;
+        this.instructions = peg.instructions;
+        this.charMatchers = peg.charMatchers;
+        this.actions = peg.actions;
         this.input = input;
         this.userParseContext = userParseContext;
     }
@@ -228,7 +226,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opCharset() {
-        CharMatcher m = matchers[pc];
+        CharMatcher m = charMatchers[pc];
         if (subjectPointer < input.length && m.match(input[subjectPointer])) {
             pc++;
             subjectPointer++;
@@ -301,6 +299,11 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
         return getMatchEnd();
 
+    }
+
+    public void reset() {
+
+        unimplemented();
     }
 
     public int getCaptureStart() {

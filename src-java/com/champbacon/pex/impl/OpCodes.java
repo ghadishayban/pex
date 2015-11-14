@@ -29,7 +29,7 @@ public interface OpCodes {
     final int END_OF_INPUT    = 21;
 
     final int ACTION          = 22;
-    // APPLY_AND_PUSH
-    // PUSH
+    // final int PUSH_VALUE      = 23;
+    // final int UPDATE_STACK_TOP  = 24;
     // SET_VAL
 }
