@@ -26,7 +26,7 @@
 (defn char-range
   [args]
   ;; checkargs
-  {:op :range
+  {:op :charset
    :args args})
 
 (defn char
@@ -66,9 +66,9 @@
   {:op :end-of-input})
 
 (defn action
-  [target]
+  [args]
   {:op :action
-   :target target})
+   :args args})
 
 (defn non-terminal
   [s]
@@ -156,7 +156,7 @@
             ;;(reduce-value-stack (next l))
 
             'action
-            (action (fnext l))
+            (action (next l))
 
             :else 
             (throw (ex-info "Unrecognized call" {:op call :form l}))))))))

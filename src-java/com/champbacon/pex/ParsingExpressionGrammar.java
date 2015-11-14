@@ -1,17 +1,18 @@
-package com.champbacon.pex.impl;
+package com.champbacon.pex;
 
 import com.champbacon.pex.CharMatcher;
 import com.champbacon.pex.PEGMatcher;
 import com.champbacon.pex.ParseAction;
+import com.champbacon.pex.impl.PEGByteCodeVM;
 
 /**
  * Created by ghadi on 11/13/15.
  */
 public class ParsingExpressionGrammar {
 
-    final int[] instructions;
-    final CharMatcher[] charMatchers;
-    final ParseAction[] actions;
+    public final int[] instructions;
+    public final CharMatcher[] charMatchers;
+    public final ParseAction[] actions;
 
     public ParsingExpressionGrammar(int[] instructions, CharMatcher[] charMatchers, ParseAction[] actions) {
         this.instructions = instructions;

@@ -91,11 +91,6 @@
                [:fail]
                [:label L2]]))))
 
-(defn emit-range
-  [_ ast]
-  (let [{:keys [args]} ast]
-    [[:range (first args)]]))
-
 (defn emit-capture
   [env ast]
   ;; optimize
@@ -103,11 +98,12 @@
     (-> (into [[:begin-capture]] body)
         (conj [:end-capture]))))
 
-(defn emit-action
-  [env ast]
-  (let [n (or (get (:actions env) (keyword (:target ast)))
-              (throw (ex-info "Action not found" ast)))]
-    [[:action n]]))
+(defn emit-linked-instruction
+  [k env ast]
+  (println env)
+  (let [n (or (get-in env [:constants k (-> ast :args first keyword)])
+              (throw (ex-info "Linked constant not found" ast)))]
+    [[k n]]))
 
 (def dispatch {:choice emit-choice
                :char emit-char
@@ -121,13 +117,14 @@
                :end-of-input (constantly [[:end-of-input]])
                :not emit-not-predicate
                :and emit-and-predicate
-               :range emit-range
                :capture emit-capture
-               :action emit-action})
+               :action  (partial emit-linked-instruction :action)
+               :charset (partial emit-linked-instruction :charset)})
 
 (defn emit
   [env ast]
   (let [f (dispatch (:op ast))]
+    (when-not f (throw (ex-info "bad ast" ast)))
     (f env ast)))
 
 (defn initial-jump-block
@@ -205,17 +202,18 @@
              [:end]])))
 
 (defn empty-env
-  [grammar actions]
+  [grammar matchers actions]
   (let [current-id (atom 0)]
     {:non-terminals (set (keys grammar))
      :next-label #(swap! current-id inc)
-     :actions (into {} (map vector (keys actions) (range)))
-     :action-impls (vec (vals actions))}))
+     :matchers (vec (vals matchers))
+     :actions (vec (vals actions))
+     :constants {:charset (into {} (map vector (keys matchers) (range)))
+                 :action  (into {} (map vector (keys actions) (range)))}}))
 
 (defn emit-instructions
-  [grammar actions entrypoint]
-  (let [env (empty-env grammar actions)
-
+  [grammar entrypoint matchers actions]
+  (let [env (empty-env grammar matchers actions)
         emit-rule (fn [[sym ast]]
                     (-> (into [[:label sym :call]]
                               (emit env ast))

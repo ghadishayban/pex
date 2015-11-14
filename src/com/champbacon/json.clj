@@ -51,7 +51,18 @@
                   :join        (fn [patt sep] [patt (list '* sep patt)])
                   :ignore-case identity})
 
-;; (run! prn (pex/compile JSON 'json json-macros))
+#_(compile JSON 'value
+         {:digit19 even?
+          :digit even?
+          :hexdigit even?}
+         {:append-hexdigit even?
+          :capture-object  even?
+          :clear-sb        even?
+          :append-sb       even?
+          :push-sb         even?
+          :append-last     even?}
+         json-macros)
+
 
 (def CSV '{file [OWS record (* NL record) EOI]
 

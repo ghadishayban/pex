@@ -1,9 +1,6 @@
 package com.champbacon.pex.impl;
 
-import com.champbacon.pex.ParseAction;
-import com.champbacon.pex.CharMatcher;
-import com.champbacon.pex.PEGMatcher;
-import com.champbacon.pex.ValueStackManip;
+import com.champbacon.pex.*;
 
 public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 {
