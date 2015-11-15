@@ -16,7 +16,7 @@ public class Matchers {
         final int high;
 
         public SingleRangeMatcher(int low, int high) {
-            if (high <= low + 1)
+            if (high <= low)
                 throw new IllegalArgumentException("low must be <= high");
 
             this.low = low;

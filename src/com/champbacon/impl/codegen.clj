@@ -1,5 +1,6 @@
 (ns com.champbacon.impl.codegen
-  (:import com.champbacon.pex.impl.OpCodes))
+  (:import com.champbacon.pex.impl.OpCodes
+           com.champbacon.pex.ParsingExpressionGrammar))
 
 (declare emit)
 
@@ -100,8 +101,8 @@
 
 (defn emit-linked-instruction
   [k env ast]
-  (println env)
-  (let [n (or (get-in env [:constants k (-> ast :args first keyword)])
+  (let [linked-constant (-> ast :args first keyword)
+        n (or (get-in env [:constants k linked-constant])
               (throw (ex-info "Linked constant not found" ast)))]
     [[k n]]))
 
@@ -180,6 +181,7 @@
                                    [(into insts inst) labels]))
                                [[] {}] instructions)
 
+        _ (println labels)
         patch-jumps (fn [stream]
                       (let [n (count stream)]
                         (loop [i 0 stream stream]
@@ -211,16 +213,6 @@
      :constants {:charset (into {} (map vector (keys matchers) (range)))
                  :action  (into {} (map vector (keys actions) (range)))}}))
 
-(defn emit-instructions
-  [grammar entrypoint matchers actions]
-  (let [env (empty-env grammar matchers actions)
-        emit-rule (fn [[sym ast]]
-                    (-> (into [[:label sym :call]]
-                              (emit env ast))
-                        (conj [:return])))
-        instructions (into [] (mapcat emit-rule) grammar)]
-    (link (add-entrypoint env instructions entrypoint))))
-
 (defn transform-instructions
   [insts]
   (let [->bytecode (fn [i]
@@ -228,3 +220,20 @@
                        (op->code i)
                        i))]
     (into [] (map ->bytecode) insts)))
+
+(defn compile-grammar
+  [grammar entrypoint matchers actions]
+  (let [env (empty-env grammar matchers actions)
+        emit-rule (fn [[sym ast]]
+                    (-> (into [[:label sym :call]]
+                              (emit env ast))
+                        (conj [:return])))
+        instructions (into [] (mapcat emit-rule) grammar)]
+    (ParsingExpressionGrammar.
+       (-> (add-entrypoint env instructions entrypoint)
+           (link)
+           (transform-instructions)
+           (int-array))
+       (into-array com.champbacon.pex.CharMatcher (:matchers env))
+       (into-array com.champbacon.pex.ParseAction (:actions env)))))
+

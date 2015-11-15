@@ -1,7 +1,5 @@
 package com.champbacon.pex.impl;
 
-import java.util.IllegalFormatCodePointException;
-
 final class StackEntry {
 
     static final int NO_OPEN_CAPTURE = -1;

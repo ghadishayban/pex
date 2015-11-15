@@ -107,9 +107,9 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         s.setCaptureHeight(captureTop);
         s.setSubjectPosition(subjectPointer);
 
-	stk++;
+	    stk++;
 
-	debugStack(s);
+	    debugStack(s);
 
         pc++;
 
@@ -124,6 +124,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         StackEntry s = stack[stk-1];
         s.setSubjectPosition(subjectPointer);
         s.setCaptureHeight(captureTop);
+        pc = instructions[pc];
     }
 
     // VALIDATE SEMANTICS
@@ -144,14 +145,14 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opFail() {
-	if (DEBUG) System.out.println("Fail");
+	    if (DEBUG) System.out.println("Fail");
 
         // pop off any plain CALL frames
         StackEntry s;
         do {
             stk--;
             s = stack[stk];
-	    debugStack(s);
+	        //  debugStack(s);
         } while (s.isCall() && stk > 0);
 
 	if (stk == 0) {
@@ -169,13 +170,13 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     private void opMatchChar() {
         int ch = instructions[pc];
-	if (DEBUG) System.out.printf("Matching character %s", (char) ch);
+	    if (DEBUG) System.out.printf("Matching character %s", (char) ch);
         if (subjectPointer < input.length && input[subjectPointer] == ch) {
-	    if (DEBUG) System.out.println("");
+            if (DEBUG) {System.out.println("");}
             pc++;
             subjectPointer++;
         } else {
-	    if (DEBUG) System.out.println(" no match");
+            if (DEBUG) System.out.println(" no match");
 
             opFail();
         }
@@ -217,13 +218,13 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opAction() {
-        ParseAction a = actions[pc];
+        ParseAction a = actions[instructions[pc]];
         a.execute(this);
         pc++;
     }
 
     private void opCharset() {
-        CharMatcher m = charMatchers[pc];
+        CharMatcher m = charMatchers[instructions[pc]];
         if (subjectPointer < input.length && m.match(input[subjectPointer])) {
             pc++;
             subjectPointer++;
@@ -289,6 +290,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
                 case OpCodes.END_OF_INPUT:    unimplemented();    break;
 
                 case OpCodes.ACTION:          opAction();    break;
+                default: throw new IllegalStateException("unknown instruction: " + op + " at pc " + pc);
             }
 
 
