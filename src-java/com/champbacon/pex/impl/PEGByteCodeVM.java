@@ -330,6 +330,10 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         return subjectPointer;
     }
 
+    public char getLastMatch() {
+        return input[subjectPointer - 1];
+    }
+
     public void push(Object v) {
         if (captureTop >= captureStack.length) doubleCaptures();
         captureStack[captureTop] = v;

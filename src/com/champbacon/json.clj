@@ -16,17 +16,10 @@
 
             string [\" (action clear-sb) characters (:ws \") (action push-sb)]
 
-            characters (/ (* normal-character)
-                          [\\ escaped-character])
+            characters (* (/ [(not (/ \" \\)) any (action append-sb)]
+                             [\\ escaped-character]))
 
-            quote-backslash "\"\\"
-            normal-character [(not quote-backslash) any (action append-sb)]
-            escaped-character (/ quote-backslash
-                                 "b"
-                                 "f"
-                                 "n"
-                                 "r"
-                                 "t"
+            escaped-character (/ [(class escape) (action append-escape)]
                                  unicode)
             unicode ["u"
                      (capture (class hexdigit)
@@ -44,7 +37,7 @@
             jtrue  ["true"  whitespace (action push-true)]
             jfalse ["false" whitespace (action push-false)]
             jnull  ["null"  whitespace (action push-nil)]
-            whitespace (* (:anyof " \n\r\t\f"))})
+            whitespace (* (class whitespace))})
 
 ;; case(syms...)  tail recursion
 
@@ -54,7 +47,7 @@
                   :ignore-case identity})
 
 (defn make-json-object
-  [captures low high]
+  [^objects captures low high]
   (loop [i low
          m (transient {})]
     (if (< i high)
@@ -66,16 +59,42 @@
 
 (defn json-parser
   []
-  (let [matchers {:digit19  (pex/single-range-matcher \1 \:)
+  (let [escapes {\b \backspace
+                 \f \formfeed
+                 \n \newline
+                 \r \return
+                 \t \tab
+                 \\ \\
+                 \/ \/
+                 \" \"}
+        matchers {:digit19  (pex/single-range-matcher \1 \:)
                   :digit    (pex/single-range-matcher \0 \:)
                   :hexdigit (pex/range-matcher [[\a \g]
-                                                [\0 \:]])}
-        actions {:append-hexdigit (pex/update-stack-top identity)
-                 :capture-object  (pex/replace-captures make-json-object)
-                 :capture-array   (pex/fold-cap (fn
+                                                [\0 \:]])
+                  :escape (reify com.champbacon.pex.CharMatcher
+                            (match [_ ch]
+                              (> (.indexOf "bt" ch) 0)))
+                  :whitespace (reify com.champbacon.pex.CharMatcher
+                                (match [_ ch]
+                                  (Character/isWhitespace ch)))}
+        actions {:append-hexdigit (reify com.champbacon.pex.ParseAction
+                                    (execute [_ vsm]
+                                    (let [^StringBuffer sb (.getUserParseContext vsm)
+                                          captures (.getCurrentCaptures vsm)
+                                          top (.getCaptureEnd vsm)
+                                          hex (aget captures top)]
+                                      (.append sb (char (Integer/parseInt hex 16)))
+                                      (.setCaptureEnd vsm (dec top)))))
+                 :capture-object (pex/replace-captures make-json-object)
+                 :capture-array  (pex/fold-cap (fn
                                                   ([] (transient []))
                                                   ([res] (persistent! res))
                                                   ([res input] (conj! res input))))
+                 :append-escape (reify com.champbacon.pex.ParseAction
+                                  (execute [_ vsm]
+                                    (let [^StringBuffer sb (.getUserParseContext vsm)
+                                          last-ch (.getLastMatch vsm)]
+                                      (.append sb ^char (escapes last-ch)))))
                  :cast-number     pex/clear-sb              ;; fixme
                  :clear-sb        pex/clear-sb
                  :append-sb       pex/append-sb
@@ -87,7 +106,7 @@
 
 (defn trial-run
   [peg input]
-  (pex/matcher peg (.toCharArray input) (StringBuffer.)))
+  (pex/matcher peg (.toCharArray ^String input) (StringBuffer.)))
 
 (def CSV '{file [OWS record (* NL record) EOI]
 

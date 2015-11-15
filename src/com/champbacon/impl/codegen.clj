@@ -228,6 +228,10 @@
                     (-> (into [[:label sym :call]]
                               (emit env ast))
                         (conj [:return])))
+        emit-rule (fn [kv]
+                    (let [instructions (emit-rule kv)]
+                      (prn instructions)
+                      instructions))
         instructions (into [] (mapcat emit-rule) grammar)]
     (ParsingExpressionGrammar.
        (-> (add-entrypoint env instructions entrypoint)
