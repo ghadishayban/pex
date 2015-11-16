@@ -5,9 +5,7 @@
 
             value (/ string number object array jtrue jfalse jnull)
 
-            object  [(:ws "{")
-                     (:join [string (:ws ":") value] ",")
-                     (:ws "}")
+            object  [(:ws "{") (:join [string (:ws ":") value] ",") (:ws "}")
                      (action capture-object)]
 
             array [(:ws "[") (:join value (:ws ",")) (:ws "]") (action capture-array)]

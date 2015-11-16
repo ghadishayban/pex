@@ -5,7 +5,7 @@ import com.champbacon.pex.*;
 public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 {
 
-    private static boolean DEBUG = true;
+    private static boolean DEBUG = false;
 
     public static final int INITIAL_STACK    = 16;
     public static final int INITIAL_CAPTURES = 4;
@@ -78,18 +78,11 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         captureStack = newCaptures;
     }
 
-    private void debugStack(StackEntry s) {
-	if (DEBUG)
-	    System.out.println(stk + " " + s);
-    }
-
     private void opCall() {
         StackEntry e = ensure1();
 
         e.setCaptureHeight(captureTop);
         e.setReturnAddress(pc + 1);
-
-	debugStack(e);
 
         stk++;
         pc = instructions[pc];
@@ -98,7 +91,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private void opRet() {
 	    stk--;
         StackEntry s = stack[stk];
-	debugStack(s);
+
  //        captureTop = s.getCaptureHeight();
 //        subjectPointer = s.getSubjectPosition();
         pc = s.getReturnAddress();
@@ -111,11 +104,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         s.setSubjectPosition(subjectPointer);
 
 	    stk++;
-
-	    debugStack(s);
-
         pc++;
-
     }
 
     private void opCommit() {
@@ -148,23 +137,22 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opFail() {
-	    if (DEBUG) System.out.println("Fail");
+        if (DEBUG) System.out.println("Fail");
 
         // pop off any plain CALL frames
         StackEntry s;
         do {
             stk--;
             s = stack[stk];
-	        //  debugStack(s);
         } while (s.isCall() && stk > 0);
 
-	if (stk == 0) {
-	    if (DEBUG) System.out.println("Grammar match failed, jumping to final instruction");
+        if (stk == 0) {
+            if (DEBUG) System.out.println("Grammar match failed, jumping to final instruction");
 
-	    matchFailed = true;
-	    pc = instructions.length - 1; // set to the final END instruction
-	    return;
-	}
+            matchFailed = true;
+            pc = instructions.length - 1; // jump to the final instruction, always END
+            return;
+        }
 
         subjectPointer = s.getSubjectPosition();
         captureTop = s.getCaptureHeight();
