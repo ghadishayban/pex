@@ -71,7 +71,7 @@
   (let [body (concat-trees env (:children ast)) 
         cont (label env)]
     (-> (into [[:choice cont]] body)
-        (conj [:label cont]))))
+        (conj [:commit cont] [:label cont]))))
 
 (defn emit-not-predicate
   [env ast]
