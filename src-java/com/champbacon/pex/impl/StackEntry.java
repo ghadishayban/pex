@@ -9,6 +9,13 @@ final class StackEntry {
     private int captureHeight;
     private int currentCaptureBegin = NO_OPEN_CAPTURE;
 
+    public void reset() {
+        returnAddress = 0;
+        subjectPosition = IS_CALL;
+        captureHeight = 0;
+        currentCaptureBegin = NO_OPEN_CAPTURE;
+    }
+
     public int getCaptureHeight() {
         return captureHeight;
     }
@@ -44,7 +51,7 @@ final class StackEntry {
     }
 
     public void clearOpenCapture() {
-	currentCaptureBegin = NO_OPEN_CAPTURE;
+	    currentCaptureBegin = NO_OPEN_CAPTURE;
     }
 
     public int getCurrentCaptureBegin() {

@@ -59,7 +59,10 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private final StackEntry ensure1() {
         if (stk >= stack.length) doubleStack();
         StackEntry e = stack[stk];
-        if (e == null) stack[stk] = e = new StackEntry();
+        if (e == null) {
+            stack[stk] = e = new StackEntry();
+            e.reset();
+        }
         return e;
     }
 

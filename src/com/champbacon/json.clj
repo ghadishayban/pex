@@ -10,7 +10,7 @@
                      (:ws "}")
                      (action capture-object)]
 
-            array [(:ws "[") (:join value (:ws ",")) (:ws "]")]
+            array [(:ws "[") (:join value (:ws ",")) (:ws "]") (action capture-array)]
 
             number [(:ws (capture integer (? frac) (? exp))) (action cast-number)]
 
@@ -22,12 +22,8 @@
             escaped-character (/ [(class escape) (action append-escape)]
                                  unicode)
             unicode ["u"
-                     (capture (class hexdigit)
-                              (class hexdigit)
-                              (class hexdigit)
-                              (class hexdigit))
+                     (capture (class hexdigit) (class hexdigit) (class hexdigit) (class hexdigit))
                      (action append-hexdigit)]
-
 
             integer [(? "-") (/ [(class digit19) digits]
                                 (class digit))]
