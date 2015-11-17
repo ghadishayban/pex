@@ -61,6 +61,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         StackEntry e = stack[stk];
         if (e == null) {
             stack[stk] = e = new StackEntry();
+        } else {
             e.reset();
         }
         return e;
