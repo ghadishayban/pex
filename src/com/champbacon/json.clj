@@ -91,7 +91,7 @@
                                     (let [^StringBuffer sb (.getUserParseContext vsm)
                                           last-ch (.getLastMatch vsm)]
                                       (.append sb ^char (escapes last-ch)))))
-                 :cast-number     (pex/update-stack-top #(keyword (str "FOO" %) ))              ;; fixme
+                 :cast-number     (pex/update-stack-top identity)              ;; fixme
                  :clear-sb        pex/clear-sb
                  :append-sb       pex/append-sb
                  :push-sb         pex/push-sb
