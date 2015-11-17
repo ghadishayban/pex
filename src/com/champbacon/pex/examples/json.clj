@@ -1,5 +1,6 @@
 (ns com.champbacon.pex.examples.json
-  (:require [com.champbacon.pex :as pex]))
+  (:require [com.champbacon.pex :as pex])
+  (:import (com.champbacon.pex ParseAction CharMatcher)))
 
 (def JSON '{json    [whitespace value EOI]
 
@@ -61,34 +62,34 @@
                  \\ \\
                  \/ \/
                  \" \"}
-        matchers {:digit19  (pex/single-range-matcher \1 \:)
-                  :digit    (pex/single-range-matcher \0 \:)
-                  :hexdigit (pex/range-matcher [[\a \g]
-                                                [\0 \:]])
-                  :escape (reify com.champbacon.pex.CharMatcher
-                            (match [_ ch]
-                              (> (.indexOf "bt" ch) 0)))
-                  :whitespace (reify com.champbacon.pex.CharMatcher
+        matchers {:digit19    (pex/single-range-matcher \1 \:)
+                  :digit      (pex/single-range-matcher \0 \:)
+                  :hexdigit   (pex/range-matcher [[\a \g]
+                                                  [\0 \:]])
+                  :escape     (reify CharMatcher
+                                (match [_ ch]
+                                  (> (.indexOf "bt" ch) 0)))
+                  :whitespace (reify CharMatcher
                                 (match [_ ch]
                                   (Character/isWhitespace ch)))}
-        actions {:append-hexdigit (reify com.champbacon.pex.ParseAction
+        actions {:append-hexdigit (reify ParseAction
                                     (execute [_ vsm]
-                                    (let [^StringBuffer sb (.getUserParseContext vsm)
-                                          captures (.getCurrentCaptures vsm)
-                                          top (.getCaptureEnd vsm)
-                                          hex (aget captures top)]
-                                      (.append sb (char (Integer/parseInt hex 16)))
-                                      (.setCaptureEnd vsm (dec top)))))
-                 :capture-object (pex/replace-captures make-json-object)
-                 :capture-array  (pex/fold-cap (fn
+                                      (let [^StringBuffer sb (.getUserParseContext vsm)
+                                            captures (.getCurrentCaptures vsm)
+                                            top (.getCaptureEnd vsm)
+                                            hex (aget captures top)]
+                                        (.append sb (char (Integer/parseInt hex 16)))
+                                        (.setCaptureEnd vsm (dec top)))))
+                 :capture-object  (pex/replace-captures make-json-object)
+                 :capture-array   (pex/fold-cap (fn
                                                   ([] (transient []))
                                                   ([res] (persistent! res))
                                                   ([res input] (conj! res input))))
-                 :append-escape (reify com.champbacon.pex.ParseAction
-                                  (execute [_ vsm]
-                                    (let [^StringBuffer sb (.getUserParseContext vsm)
-                                          last-ch (.getLastMatch vsm)]
-                                      (.append sb ^char (escapes last-ch)))))
+                 :append-escape   (reify ParseAction
+                                    (execute [_ vsm]
+                                      (let [^StringBuffer sb (.getUserParseContext vsm)
+                                            last-ch (.getLastMatch vsm)]
+                                        (.append sb ^char (escapes last-ch)))))
                  :cast-number     (pex/update-stack-top identity)              ;; fixme
                  :clear-sb        pex/clear-sb
                  :append-sb       pex/append-sb

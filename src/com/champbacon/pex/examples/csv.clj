@@ -1,6 +1,8 @@
 (ns com.champbacon.pex.examples.csv
   (:require [com.champbacon.pex :as pex]))
 
+;; THIS IS INCOMPLETE AND INCORRECT
+
 (def CSV '{file [OWS record (* NL record) EOI]
 
            record [field (* field-delimeter field)]

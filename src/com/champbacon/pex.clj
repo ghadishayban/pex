@@ -1,7 +1,7 @@
 (ns com.champbacon.pex
   (:refer-clojure :exclude [compile])
-  (:require [com.champbacon.impl.tree :as tree]
-            [com.champbacon.impl.codegen :as codegen])
+  (:require [com.champbacon.pex.impl.tree :as tree]
+            [com.champbacon.pex.impl.codegen :as codegen])
   (:import (com.champbacon.pex.impl Matchers$SingleRangeMatcher
                                     Matchers$RangeMatcher
                                     Actions
