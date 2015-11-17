@@ -2,20 +2,20 @@
   (:require [com.champbacon.pex :as pex])
   (:import (com.champbacon.pex ParseAction CharMatcher)))
 
-(def JSON '{json    [whitespace value EOI]
+(def JSON '{json  [whitespace value EOI]                    ;; Main Rule
 
             value (/ string number object array jtrue jfalse jnull)
 
-            object  [(:ws "{")
-                     (? (:join [string (:ws ":") value] (:ws ",")))
-                     (:ws "}")
+            object  [(:sp "{")                              ;; sp is a rule macro that chews whitespace
+                     (? (:join [string (:sp ":") value] (:sp ",")))
+                     (:sp "}")
                      (action capture-object)]
 
-            array [(:ws "[") (? (:join value (:ws ","))) (:ws "]") (action capture-array)]
+            array [(:sp "[") (? (:join value (:sp ","))) (:sp "]") (action capture-array)]
 
-            number [(:ws (capture integer (? frac) (? exp))) (action cast-number)]
+            number [(:sp (capture integer (? frac) (? exp))) (action cast-number)]
 
-            string [\" (action clear-sb) characters (:ws \") (action push-sb)]
+            string [\" (action clear-sb) characters (:sp \") (action push-sb)]
 
             characters (* (/ [(not (/ \" \\)) any (action append-sb)]
                              [\\ escaped-character]))
@@ -30,16 +30,14 @@
                                 (class digit))]
             digits  [(class digit) (* (class digit))]
             frac    ["." digits]
-            exp     [(:ignore-case "e") (? (:anyof "+-")) digits]
+            exp     [(/ "e" "E") (? (/ "+" "-")) digits]
             jtrue  ["true"  whitespace (action push-true)]
             jfalse ["false" whitespace (action push-false)]
             jnull  ["null"  whitespace (action push-nil)]
             whitespace (* (class whitespace))})
 
-(def json-macros {:anyof       (fn [str] (apply list '/ (seq str)))
-                  :ws          (fn [patt] [patt 'whitespace])
-                  :join        (fn [patt sep] [patt (list '* sep patt)])
-                  :ignore-case identity})
+(def json-macros {:sp   (fn [patt] [patt 'whitespace])
+                  :join (fn [patt sep] [patt (list '* sep patt)])})
 
 (defn make-json-object
   [^objects captures low high]
@@ -50,7 +48,6 @@
              (assoc! m (aget captures i)
                        (aget captures (unchecked-inc i))))
       (persistent! m))))
-
 
 (defn json-parser
   []
@@ -64,8 +61,7 @@
                  \" \"}
         matchers {:digit19    (pex/single-range-matcher \1 \:)
                   :digit      (pex/single-range-matcher \0 \:)
-                  :hexdigit   (pex/range-matcher [[\a \g]
-                                                  [\0 \:]])
+                  :hexdigit   (pex/range-matcher [[\a \g] [\0 \:]])
                   :escape     (reify CharMatcher
                                 (match [_ ch]
                                   (> (.indexOf "bt" ch) 0)))
@@ -90,15 +86,19 @@
                                       (let [^StringBuffer sb (.getUserParseContext vsm)
                                             last-ch (.getLastMatch vsm)]
                                         (.append sb ^char (escapes last-ch)))))
-                 :cast-number     (pex/update-stack-top identity)              ;; fixme
-                 :clear-sb        pex/clear-sb
-                 :append-sb       pex/append-sb
-                 :push-sb         pex/push-sb
+                 :cast-number     (pex/update-stack-top #(Double/valueOf ^String %))
                  :push-true       (pex/push true)
                  :push-false      (pex/push false)
-                 :push-nil        (pex/push nil)}]
+                 :push-nil        (pex/push nil)
+                 :clear-sb        pex/clear-sb
+                 :append-sb       pex/append-sb
+                 :push-sb         pex/push-sb}]
     (pex/compile JSON 'json matchers actions json-macros)))
 
-(defn matcher
-  [peg input]
-  (pex/matcher peg (.toCharArray ^String input) (StringBuffer.)))
+(comment
+  (let [json (json-parser)
+        ;;input "\"42\""
+        input "{\"bar\": [\"this\", 42, {}, [1,2,3], \"foo\"]}"
+        m (pex/matcher json (.toCharArray input) (StringBuffer.))
+        result (.match m 0)]
+    (first (.getCaptures m))))

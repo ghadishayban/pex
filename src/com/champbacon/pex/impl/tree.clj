@@ -1,4 +1,4 @@
-(ns com.champbacon.impl.tree
+(ns com.champbacon.pex.impl.tree
   (:refer-clojure :exclude [cat char not and]))
 
 (def ^:dynamic *macros* {})

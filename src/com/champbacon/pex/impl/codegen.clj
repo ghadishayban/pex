@@ -1,6 +1,6 @@
-(ns com.champbacon.impl.codegen
+(ns com.champbacon.pex.impl.codegen
   (:import com.champbacon.pex.impl.OpCodes
-           com.champbacon.pex.ParsingExpressionGrammar))
+           (com.champbacon.pex ParsingExpressionGrammar CharMatcher ParseAction)))
 
 (declare emit)
 
@@ -181,7 +181,6 @@
                                    [(into insts inst) labels]))
                                [[] {}] instructions)
 
-        _ (println labels)
         patch-jumps (fn [stream]
                       (let [n (count stream)]
                         (loop [i 0 stream stream]
@@ -228,16 +227,11 @@
                     (-> (into [[:label sym :call]]
                               (emit env ast))
                         (conj [:return])))
-        emit-rule (fn [kv]
-                    (let [instructions (emit-rule kv)]
-                      (prn instructions)
-                      instructions))
         instructions (into [] (mapcat emit-rule) grammar)]
     (ParsingExpressionGrammar.
-       (-> (add-entrypoint env instructions entrypoint)
+      (-> (add-entrypoint env instructions entrypoint)
            (link)
            (transform-instructions)
            (int-array))
-       (into-array com.champbacon.pex.CharMatcher (:matchers env))
-       (into-array com.champbacon.pex.ParseAction (:actions env)))))
-
+      (into-array CharMatcher (:matchers env))
+      (into-array ParseAction (:actions env)))))
