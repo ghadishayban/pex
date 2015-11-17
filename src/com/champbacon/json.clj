@@ -5,10 +5,12 @@
 
             value (/ string number object array jtrue jfalse jnull)
 
-            object  [(:ws "{") (:join [string (:ws ":") value] ",") (:ws "}")
+            object  [(:ws "{")
+                     (? (:join [string (:ws ":") value] (:ws ",")))
+                     (:ws "}")
                      (action capture-object)]
 
-            array [(:ws "[") (:join value (:ws ",")) (:ws "]") (action capture-array)]
+            array [(:ws "[") (? (:join value (:ws ","))) (:ws "]") (action capture-array)]
 
             number [(:ws (capture integer (? frac) (? exp))) (action cast-number)]
 
@@ -89,14 +91,14 @@
                                     (let [^StringBuffer sb (.getUserParseContext vsm)
                                           last-ch (.getLastMatch vsm)]
                                       (.append sb ^char (escapes last-ch)))))
-                 :cast-number     pex/clear-sb              ;; fixme
+                 :cast-number     (pex/update-stack-top #(keyword (str "FOO" %) ))              ;; fixme
                  :clear-sb        pex/clear-sb
                  :append-sb       pex/append-sb
                  :push-sb         pex/push-sb
                  :push-true       (pex/push true)
                  :push-false      (pex/push false)
                  :push-nil        (pex/push nil)}]
-    (pex/compile JSON 'value matchers actions json-macros)))
+    (pex/compile JSON 'json matchers actions json-macros)))
 
 (defn trial-run
   [peg input]
@@ -130,3 +132,12 @@
 
 (def csv-macros {:ws   (fn [patt] [patt 'whitespace])
                  :join (fn [patt sep] [patt (list '* sep patt)])})
+
+
+(def regress '{number [(capture "42" (? frac) (? exp))]
+               frac ["." (* (class digit))]
+               exp  ["e" (? "+") (* (class digit))]})
+
+(def matchers {:digit    (pex/single-range-matcher \0 \:)})
+
+(def r (pex/compile regress 'number matchers {} {}))
