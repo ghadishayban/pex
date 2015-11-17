@@ -85,7 +85,7 @@ There are several helpers that build up character classes.  Each character class
 
 The typical way to match separator delimited things:
 ```clj
-(pattern (* separator pattern))
+[pattern (* separator pattern)]
 ```
 ### Parse Actions
 
