@@ -1,8 +1,35 @@
 # pex, a parsing library
 
+### Rationale 
+
+PEGs (Parsing Expression Grammars) are more powerful than regexes, compose better, and are expressible using PODS (Plain Ol' Data Structures)
+
+Deterministic parsers are a simpler model than those that produce ambiguity.
+
 ### Fundamentals
 
-String and chars literals match... literally `"foo"`
+Grammars are input as a quoted datastructure, just like Datomic queries.
+
+```clj
+(def Number '{number [digits (? fractional) (? exponent)]
+              fractional ["." digits]
+              exponent   ["e" (? (/ "+" "-")) digits]
+              digits     [(class num) (* (class num))]})
+```
+
+The left hand side of the map is the name of the rule, the right hand side is the definition.
+Any bare symbol inside a definition is a call to that rule.  Calls are *not* applied with parenthesis.
+Parenthesis denote some special behavior.
+
+Grammars are then compiled, like a java.util.regex.Pattern
+The compiled grammar can then be run onn inputs.
+
+### Rule Fundamentals
+
+String and chars literals match... literally
+```clj
+"foo"
+```
 
 Ordered Choice is the most important operation in a PEG. `B` will only be attempted only if `A` fails:
 ```clj
@@ -60,15 +87,6 @@ There are also a few prebuilt actions that access an efficient StringBuffer for 
 
 User supplied macros can expand rules to remove boilerplate.
 `TODO` example
-
-
-# Rationale 
-
-PEGs (Parsing Expression Grammars) are more powerful than regexes, compose better, and are expressible using PODS (Plain Ol' Data Structures)
-
-Combinators compose, but need special care not to blow the stack in a language without TCO.  Let's implement the parser using a virtual machine [ref].
-
-Deterministic parsers are a simpler model than those that produce ambiguity.
 
 # Examples
 
