@@ -76,7 +76,8 @@ public class Actions {
 
     public final static ParseAction CLEAR_STRING_BUFFER = new ParseAction() {
         public void execute(ValueStackManip vm) {
-            vm.setUserParseContext(new StringBuffer());
+            // or allocate a new one
+            ((StringBuffer) vm.getUserParseContext()).setLength(0);
         }
     };
 
