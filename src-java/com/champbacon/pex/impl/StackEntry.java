@@ -59,11 +59,4 @@ final class StackEntry {
             return currentCaptureBegin;
         else throw new IllegalStateException("No open capture.");
     }
-
-    public String toString() {
-	return String.format("#frame {:sub %5s :captop %3s :ret %5s}",
-			     subjectPosition,
-			     captureHeight,
-			     returnAddress);
-    }
 }

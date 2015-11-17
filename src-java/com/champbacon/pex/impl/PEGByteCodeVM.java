@@ -82,6 +82,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private void opCall() {
         StackEntry e = ensure1();
 
+        // do not set subjectPosition
         e.setCaptureHeight(captureTop);
         e.setReturnAddress(pc + 1);
 
@@ -92,9 +93,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private void opRet() {
 	    stk--;
         StackEntry s = stack[stk];
-
  //        captureTop = s.getCaptureHeight();
-//        subjectPointer = s.getSubjectPosition();
         pc = s.getReturnAddress();
     }
 
@@ -188,7 +187,9 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     private void opAny() {
         if (subjectPointer < input.length) {
             subjectPointer++;
-        } else opFail();
+        } else {
+            opFail();
+        }
     }
 
     private void opBeginCapture() {
@@ -198,15 +199,13 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     private void opEndCapture() {
         StackEntry s = stack[stk-1];
+
         int captureBegin =  s.getCurrentCaptureBegin();
-	s.clearOpenCapture();
-        int captureEnd = subjectPointer;
-        String cap = new String(input, captureBegin, captureEnd - captureBegin);
+    	s.clearOpenCapture();
 
-        if (captureTop >= captureStack.length) doubleCaptures();
+        String cap = new String(input, captureBegin, subjectPointer - captureBegin);
 
-        captureStack[captureTop] = cap;
-        captureTop++;
+        push(cap);
     }
 
     private void opAction() {
@@ -220,7 +219,14 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         if (subjectPointer < input.length && m.match(input[subjectPointer])) {
             pc++;
             subjectPointer++;
-        } else opFail();
+        } else {
+            opFail();
+        }
+    }
+
+    private void opEndOfInput()  {
+        if (subjectPointer != input.length)
+            opFail();
     }
 
     private void debug() {
@@ -279,7 +285,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
                 case OpCodes.END_CAPTURE:     opEndCapture();     break;
                 case OpCodes.FULL_CAPTURE:    unimplemented();    break;
                 case OpCodes.BEHIND:          unimplemented();    break;
-                case OpCodes.END_OF_INPUT:    unimplemented();    break;
+                case OpCodes.END_OF_INPUT:    opEndOfInput();    break;
 
                 case OpCodes.ACTION:          opAction();    break;
                 default: throw new IllegalStateException("unknown instruction: " + op + " at pc " + pc);
@@ -307,7 +313,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     public void setCaptureEnd(int i) {
-	captureTop = i;
+	    captureTop = i;
     }
 
     public Object[] getCurrentCaptures() {
