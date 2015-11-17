@@ -2,6 +2,8 @@
   (:require [com.champbacon.pex :as pex])
   (:import (com.champbacon.pex ParseAction CharMatcher)))
 
+;; HOW TO RUN AT THE BOTTOM
+
 (def JSON '{json  [whitespace value EOI]                    ;; Main Rule
 
             value (/ string number object array jtrue jfalse jnull)

@@ -2,12 +2,11 @@ package com.champbacon.pex.impl;
 
 import com.champbacon.pex.*;
 
-public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
-{
+public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip {
 
     private static boolean DEBUG = false;
 
-    public static final int INITIAL_STACK    = 16;
+    public static final int INITIAL_STACK = 16;
     public static final int INITIAL_CAPTURES = 4;
 
     private StackEntry[] stack = new StackEntry[INITIAL_STACK];
@@ -91,9 +90,9 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opRet() {
-	    stk--;
+        stk--;
         StackEntry s = stack[stk];
- //        captureTop = s.getCaptureHeight();
+        //        captureTop = s.getCaptureHeight();
         pc = s.getReturnAddress();
     }
 
@@ -103,7 +102,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         s.setCaptureHeight(captureTop);
         s.setSubjectPosition(subjectPointer);
 
-	    stk++;
+        stk++;
         pc++;
     }
 
@@ -113,7 +112,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opPartialCommit() {
-        StackEntry s = stack[stk-1];
+        StackEntry s = stack[stk - 1];
         s.setSubjectPosition(subjectPointer);
         s.setCaptureHeight(captureTop);
         pc = instructions[pc];
@@ -137,8 +136,6 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opFail() {
-        if (DEBUG) System.out.println("Fail");
-
         // pop off any plain CALL frames
         StackEntry s;
         do {
@@ -147,7 +144,6 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         } while (s.isCall() && stk > 0);
 
         if (stk == 0) {
-            if (DEBUG) System.out.println("Grammar match failed, jumping to final instruction");
 
             matchFailed = true;
             pc = instructions.length - 1; // jump to the final instruction, always END
@@ -161,14 +157,10 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
     private void opMatchChar() {
         int ch = instructions[pc];
-	    if (DEBUG) System.out.printf("Matching character %s", (char) ch);
         if (subjectPointer < input.length && input[subjectPointer] == ch) {
-            if (DEBUG) {System.out.println("");}
             pc++;
             subjectPointer++;
         } else {
-            if (DEBUG) System.out.println(" no match");
-
             opFail();
         }
     }
@@ -193,15 +185,15 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     private void opBeginCapture() {
-        StackEntry s = stack[stk-1];
+        StackEntry s = stack[stk - 1];
         s.setCurrentCaptureBegin(subjectPointer);
     }
 
     private void opEndCapture() {
-        StackEntry s = stack[stk-1];
+        StackEntry s = stack[stk - 1];
 
-        int captureBegin =  s.getCurrentCaptureBegin();
-    	s.clearOpenCapture();
+        int captureBegin = s.getCurrentCaptureBegin();
+        s.clearOpenCapture();
 
         String cap = new String(input, captureBegin, subjectPointer - captureBegin);
 
@@ -224,20 +216,20 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
         }
     }
 
-    private void opEndOfInput()  {
+    private void opEndOfInput() {
         if (subjectPointer != input.length)
             opFail();
     }
 
     private void debug() {
-	if (subjectPointer >= input.length) return;
+        if (subjectPointer >= input.length) return;
         System.out.printf(
                 "{:pc %3d :op %2d :subj [\"%s\" %5d] :captop %2d :stk %2d}%n",
                 pc,
                 instructions[pc],
                 input[subjectPointer], subjectPointer,
                 captureTop,
-		stk);
+                stk);
     }
 
     private void unimplemented() {
@@ -253,8 +245,6 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
 
         vm:
         while (true) {
-            if (DEBUG) debug();
-
             final int op = instructions[pc++];
 
             switch(op) {
@@ -299,7 +289,6 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     public void reset() {
-
         unimplemented();
     }
 
@@ -313,7 +302,7 @@ public final class PEGByteCodeVM implements PEGMatcher, ValueStackManip
     }
 
     public void setCaptureEnd(int i) {
-	    captureTop = i;
+        captureTop = i;
     }
 
     public Object[] getCurrentCaptures() {
