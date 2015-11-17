@@ -1,3 +1,5 @@
+* TRACE opcode (Logs rule applications with debug info. Rule name and Position).
+* cuts
 * string capture uses a slow constructor
 * input shouldn't be a char[]
 * make json/cast-number less dumb
