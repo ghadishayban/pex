@@ -1,0 +1,4 @@
+* string capture is slow
+* input shouldn't be a char[]
+* maybe a case-match statement for tail recursion
+* better documentation
