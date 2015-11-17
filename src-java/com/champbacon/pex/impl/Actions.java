@@ -30,7 +30,7 @@ public class Actions {
         public void execute(ValueStackManip vm) {
             Object[] captures = vm.getCurrentCaptures();
 
-            int cur = vm.getCaptureEnd();
+            int cur = vm.getCaptureEnd() - 1;
             captures[cur] = f.invoke(captures[cur]);
         }
     }
