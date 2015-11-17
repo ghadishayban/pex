@@ -1,4 +1,4 @@
-(ns com.champbacon.json
+(ns com.champbacon.pex.examples.json
   (:require [com.champbacon.pex :as pex]))
 
 (def JSON '{json    [whitespace value EOI]
@@ -34,8 +34,6 @@
             jfalse ["false" whitespace (action push-false)]
             jnull  ["null"  whitespace (action push-nil)]
             whitespace (* (class whitespace))})
-
-;; case(syms...)  tail recursion
 
 (def json-macros {:anyof       (fn [str] (apply list '/ (seq str)))
                   :ws          (fn [patt] [patt 'whitespace])
@@ -100,44 +98,6 @@
                  :push-nil        (pex/push nil)}]
     (pex/compile JSON 'json matchers actions json-macros)))
 
-(defn trial-run
+(defn matcher
   [peg input]
   (pex/matcher peg (.toCharArray ^String input) (StringBuffer.)))
-
-(def CSV '{file [OWS record (* NL record) EOI]
-
-           record [field (* field-delimeter field)]
-
-           field-delimeter ","
-           field (/ quoted unquoted)
-
-           unquoted (capture (* (class nonquotechars)))
-           ;; (capture (not \") (* ANY))
-           quoted [OWS \"
-                   (capture (* (/ (class quotechars) "\"\"")))
-                   ;; (apply unescape-quotes (* (/ (class quotechars)
-                   ;;                              "\"\"")))
-                   ;;
-
-                   \" OWS
-                   (action unescape-quotes)]
-
-           NL [(? \r) \n]
-           OWS (* (class :ws))})
-
-(def csv-field '{record [field (* sep field) "\n" EOI]
-                 field  (/ quoted unquoted)
-                 quoted ["\"" [(not "\"") ANY]  ]
-                 sep ","})
-
-(def csv-macros {:ws   (fn [patt] [patt 'whitespace])
-                 :join (fn [patt sep] [patt (list '* sep patt)])})
-
-
-(def regress '{number [(capture "42" (? frac) (? exp))]
-               frac ["." (* (class digit))]
-               exp  ["e" (? "+") (* (class digit))]})
-
-(def matchers {:digit    (pex/single-range-matcher \0 \:)})
-
-(def r (pex/compile regress 'number matchers {} {}))
