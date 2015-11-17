@@ -30,7 +30,8 @@
 
 (defn replace-captures
   "f will be passed array, low-idx, high-idx.
-   The extent of captures will be replaced with the result of f"
+   The extent of captures will be replaced with the result of f
+   high-idx is exclusive"
   [f]
   (Actions$ReplaceCaptures. f))
 
