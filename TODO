@@ -1,4 +1,9 @@
-* string capture is slow
+* string capture uses a slow constructor
 * input shouldn't be a char[]
+* make json/cast-number less dumb
 * maybe a case-match statement for tail recursion
 * better documentation
+* codegen/emit should be a multimethod
+* add CSV example
+* reset the VM
+* LPEG tree optimizations
