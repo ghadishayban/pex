@@ -66,7 +66,7 @@
                   :hexdigit   (pex/range-matcher [[\a \g] [\0 \:]])
                   :escape     (reify CharMatcher
                                 (match [_ ch]
-                                  (> (.indexOf "bt" ch) 0)))
+                                  (> (.indexOf "bfnrt\\/\"" ch) 0)))
                   :whitespace (reify CharMatcher
                                 (match [_ ch]
                                   (Character/isWhitespace ch)))}
@@ -87,7 +87,7 @@
                                     (execute [_ vsm]
                                       (let [^StringBuffer sb (.getUserParseContext vsm)
                                             last-ch (.getLastMatch vsm)]
-                                        (.append sb ^char (escapes last-ch)))))
+                                        (.append sb ^char (escapes (char last-ch))))))
                  :cast-number     (pex/update-stack-top #(Double/valueOf ^String %))
                  :push-true       (pex/push true)
                  :push-false      (pex/push false)
