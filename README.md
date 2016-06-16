@@ -8,7 +8,7 @@ PEGs (Parsing Expression Grammars) are more powerful than regexes, compose bette
 
 Deterministic parsers are a simpler model than those that produce ambiguity.
 
-`pex` is implemented with a Virtual Machine, just like its inspiration LPEG.
+`pex` is implemented with a Virtual Machine, just like its inspiration [LPEG](http://www.inf.puc-rio.br/~roberto/lpeg/).
 
 ### Fundamentals
 
